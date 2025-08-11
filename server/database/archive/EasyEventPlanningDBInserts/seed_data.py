@@ -3,7 +3,7 @@ seed_data.py
 Bulk insert demo data for the Events app.
 """
 from datetime import date, time
-from DataBase.db_config import get_connection  # noqa: E402
+from server.database.db_config import get_connection  # noqa: E402
 
 
 def seed() -> None:

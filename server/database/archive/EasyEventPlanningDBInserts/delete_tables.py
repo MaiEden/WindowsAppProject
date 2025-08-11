@@ -5,7 +5,7 @@ Drops all user tables in the current database after removing foreign keys.
 IRREVERSIBLE. Make a backup or be sure you want to wipe the schema.
 """
 
-from DataBase.db_config import get_connection
+from server.database.db_config import get_connection
 
 SQL = r"""
 SET NOCOUNT ON;
