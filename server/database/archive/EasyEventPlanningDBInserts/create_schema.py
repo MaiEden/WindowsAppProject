@@ -2,7 +2,7 @@
 create_schema.py
 Create the database schema for the Events app.
 """
-from DataBase.db_config import get_connection  # import your config
+from server.database.db_config import get_connection  # import your config
 
 SCHEMA_SQL = """
 --Create the schema if it doesn't exist
