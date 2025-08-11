@@ -11,29 +11,36 @@ from pydantic import BaseModel
 #   Exceptions & Constants
 # =========================
 
-
 class UnsupportedDateError(ValueError):
     """Raised when the requested datetime is outside supported forecast/archive ranges."""
-
 
 # Open-Meteo limits (practical)
 FORECAST_MAX_FWD_DAYS = 16             # forecast horizon ~16 days ahead
 ARCHIVE_EARLIEST_UTC = datetime(1940, 1, 1, tzinfo=timezone.utc)  # safe lower bound
 ARCHIVE_LATEST_DELAY_DAYS = 5          # archive latency for very recent past
-
 # =========================
 #   Data Model
 # =========================
-
+# This class defines the unified weather data structure used in the application.
 class Weather(BaseModel):
+    # UTC timestamp of the forecast/observation in ISO-8601 format (e.g., "2025-09-01T16:00")
     time_utc: str
+    # Air temperature in degrees Celsius.
     temperature_c: Optional[float] = None
+    # Wind speed in kilometers per hour.
     wind_speed_kmh: Optional[float] = None
+    # Precipitation amount in millimeters for the given hour.
     precipitation_mm: Optional[float] = None
+    # Probability of precipitation in percent (0–100%).
     precipitation_probability_percent: Optional[float] = None
-    source: str  # "open-meteo-forecast" / "open-meteo-archive"
+    # Source of the weather data.
+    source: str
 
     def as_json(self) -> Dict[str, Any]:
+        """
+        Convert the Weather object into a dictionary suitable for JSON serialization.
+        This returns all field names as keys and their current values as dictionary values.
+        """
         return self.model_dump()
 
 # =========================
@@ -61,7 +68,6 @@ def parse_iso_to_utc(dt: str) -> datetime:
 
     # work on exact hours
     return d.astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
-
 
 def validate_supported_datetime(dt_utc: datetime, now_utc: datetime) -> None:
     """
@@ -93,7 +99,6 @@ def validate_supported_datetime(dt_utc: datetime, now_utc: datetime) -> None:
 # =========================
 #   Open-Meteo Calls
 # =========================
-
 
 async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) -> Weather:
     """
@@ -134,7 +139,6 @@ async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) ->
         precipitation_probability_percent=(h.get("precipitation_probability") or [None])[0],
         source="open-meteo-forecast",
     )
-
 
 async def fetch_open_meteo_archive(lat: float, lon: float, dt_utc: datetime) -> Weather:
     """
@@ -183,7 +187,6 @@ async def fetch_open_meteo_archive(lat: float, lon: float, dt_utc: datetime) -> 
 #   Public API (async & sync)
 # =========================
 
-
 async def _get_weather_async(lat: float, lon: float, datetime_iso: str) -> Dict[str, Any]:
     """
     Core async function: validates inputs, routes to forecast/archive and returns a JSON dict.
@@ -207,7 +210,6 @@ async def _get_weather_async(lat: float, lon: float, datetime_iso: str) -> Dict[
     else:
         w = await fetch_open_meteo_archive(lat, lon, dt_utc)
         return w.as_json()
-
 
 def get_weather(lat: float, lon: float, datetime_iso: str) -> Dict[str, Any]:
     """
