@@ -46,7 +46,7 @@ BEGIN
     );
 END;
 
--- Users <-> Services (which services a user offers)
+-- Users <-> Services (which external_services a user offers)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='UserServices' AND schema_id = SCHEMA_ID('dbo'))
 BEGIN
     CREATE TABLE dbo.UserServices (
@@ -58,7 +58,7 @@ BEGIN
     );
 END;
 
--- Events <-> Services (services planned/ordered for an event)
+-- Events <-> Services (external_services planned/ordered for an event)
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='EventServices' AND schema_id = SCHEMA_ID('dbo'))
 BEGIN
     CREATE TABLE dbo.EventServices (

@@ -7,11 +7,11 @@ This module provides:
 - get_users():            Basic list of users.
 - get_services():         Services catalog (with price/age range/region).
 - get_events():           Events with the manager (user) name.
-- get_user_services():    Flat mapping of which services each user offers.
+- get_user_services():    Flat mapping of which external_services each user offers.
 - report_users_with_services_and_events():
-                         Per-user aggregation: offered services + events managed.
+                         Per-user aggregation: offered external_services + events managed.
 - report_events_with_services_and_manager():
-                         Per-event aggregation: manager + services planned.
+                         Per-event aggregation: manager + external_services planned.
 """
 
 import pyodbc
@@ -103,7 +103,7 @@ def get_users() -> List[Dict[str, Any]]:
 
 def get_services() -> List[Dict[str, Any]]:
     """
-    Fetch the services catalog.
+    Fetch the external_services catalog.
 
     Returns list of dicts: [{ServiceId, ServiceType, ServiceDescription, Region, MinAge, MaxAge, Price}, ...]
         ordered by ServiceType.
@@ -150,7 +150,7 @@ def get_events() -> List[Dict[str, Any]]:
 
 def get_user_services() -> List[Dict[str, Any]]:
     """
-    Fetch a flattened map of which services each user offers.
+    Fetch a flattened map of which external_services each user offers.
 
     Returns list of dicts: [{Username, ServiceType}, ...], ordered by Username then ServiceType.
     """
@@ -255,5 +255,5 @@ if __name__ == "__main__":
     print("\nServices:"); print_table(get_services())
     print("\nEvents:"); print_table(get_events())
     print("\nUserServices:"); print_table(get_user_services())
-    print("\nReport: Users with services & events"); print_table(report_users_with_services_and_events())
-    print("\nReport: Events with services & manager"); print_table(report_events_with_services_and_manager())
+    print("\nReport: Users with external_services & events"); print_table(report_users_with_services_and_events())
+    print("\nReport: Events with external_services & manager"); print_table(report_events_with_services_and_manager())

@@ -46,7 +46,7 @@ def seed() -> None:
         )
         conn.commit()
 
-        # Map users/services to ids
+        # Map users/external_services to ids
         cur.execute("SELECT UserId, Username FROM dbo.Users;")
         user_id = {u: i for i, u in cur.fetchall()}
 
