@@ -1,0 +1,116 @@
+/* -------- Base (clean, light) -------- */
+QWidget {
+    background: #F7F9FC; /* very light gray/blue */
+    color: #111827;
+    font-family: 'Segoe UI', 'Inter', system-ui, -apple-system, Arial, sans-serif;
+    font-size: 14px;
+}
+
+/* -------- Card -------- */
+QFrame#Card {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;   /* thin neutral border */
+    border-radius: 16px;         /* softer than before */
+    /* shadow comes from QGraphicsDropShadowEffect in view.py */
+}
+
+/* -------- Titles -------- */
+QLabel#Title {
+    font-size: 26px;
+    font-weight: 700;
+    background: transparent;
+}
+QLabel#Subtitle {
+    font-size: 20px;
+    background: transparent;
+}
+
+/* -------- Text fields (clean, outline-only) -------- */
+QLineEdit {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 12px 14px;
+    selection-background-color: #DBEAFE; /* soft blue selection */
+    selection-color: #111827;
+}
+QLineEdit:hover {
+    border: 1px solid #D1D5DB;
+}
+QLineEdit:focus {
+    border: 1px solid #60A5FA;   /* blue-400 outline */
+    background: #FFFFFF;
+}
+
+/* -------- Primary button (blue gradient, large radius) -------- */
+QPushButton#Primary {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #2563EB, stop:1 #3B82F6); /* blue-600 → blue-500 */
+    border: none;
+    border-radius: 12px;
+    padding: 12px 18px;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+QPushButton#Primary:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+        stop:0 #1D4ED8, stop:1 #2563EB); /* a touch darker */
+}
+QPushButton#Primary:pressed {
+    background: #1E40AF; /* blue-800 */
+}
+QPushButton#Primary:disabled {
+    background: #BFDBFE; /* blue-200 */
+    color: #EFF6FF;
+}
+
+/* -------- Link-like button (underlined on hover) -------- */
+QPushButton#Link {
+    background: transparent;
+    border: none;
+    color: #2563EB;   /* blue-600 */
+    font-weight: 600;
+    padding: 8px 10px;
+}
+QPushButton#Link:hover {
+    color: #1D4ED8;
+    text-decoration: underline;
+}
+
+/* -------- Helper/Message (subtle, no heavy fill) -------- */
+QLabel#Message {
+    border-radius: 10px;
+    padding: 10px 12px;
+    border: 1px solid transparent;
+}
+QLabel#Message[status="ok"] {
+    background: #F0FDF4; /* green-50 */
+    color: #166534;      /* green-800 */
+    border: 1px solid #A7F3D0;
+}
+QLabel#Message[status="error"] {
+    background: #FEF2F2; /* red-50 */
+    color: #991B1B;      /* red-800 */
+    border: 1px solid #FECACA;
+}
+
+/* -------- Small hint text -------- */
+QLabel#Hint {
+    color: #9CA3AF;
+    font-size: 12px;
+}
+
+/* -------- Social (if משתמש/ת בזה בעתיד) -------- */
+QPushButton#Social {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    padding: 10px 12px;
+    color: #111827;
+    font-weight: 600;
+}
+QPushButton#Social:hover {
+    border-color: #D1D5DB;
+    background: #F9FAFB;
+}

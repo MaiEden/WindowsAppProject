@@ -1,0 +1,97 @@
+/* ===== Sidebar ===== */
+QFrame#sidebar {
+    background-color: #f5f7fa;
+    border-right: 1px solid #ddd;
+}
+
+QPushButton#sidebarButton {
+    background-color: transparent;
+    border: none;
+    padding: 10px;
+    text-align: left;
+    font-size: 14px;
+}
+
+QPushButton#sidebarButton:hover {
+    background-color: #e0e4eb;
+}
+
+QPushButton#sidebarButton:checked {
+    background-color: #d0d7e6;
+    font-weight: bold;
+}
+
+/* ===== Top Bar ===== */
+QFrame#topbar {
+    background-color: white;
+    border-bottom: 1px solid #ddd;
+}
+
+QLineEdit, QComboBox, QDateEdit {
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+QPushButton#filterButton {
+    background-color: #007bff;
+    color: white;
+    border-radius: 6px;
+    padding: 6px 12px;
+}
+
+QPushButton#filterButton:hover {
+    background-color: #0056b3;
+}
+
+/* ===== Table ===== */
+QTableWidget {
+    background-color: white;
+    border: none;
+    gridline-color: #ddd;
+    font-size: 13px;
+}
+
+QTableWidget::item {
+    padding: 6px;
+}
+
+.buyCell {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.sellCell {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+/* ===== Table Styling ===== */
+QTableWidget {
+    background-color: white;
+    border: none;
+    gridline-color: #e0e0e0;
+    font-size: 14px;
+    selection-background-color: #d0e7ff;
+}
+
+QHeaderView::section {
+    background-color: #f5f6fa;
+    color: #333;
+    font-weight: bold;
+    padding: 8px;
+    border: none;
+    border-bottom: 1px solid #dcdcdc;
+}
+
+QTableWidget::item {
+    padding: 6px;
+}
+
+/* שורות עם פסים */
+QTableWidget::item:!selected {
+    background-color: transparent;
+}
+
+QTableWidget::item:!selected:nth-child(even) {
+    background-color: #fafafa;
+}

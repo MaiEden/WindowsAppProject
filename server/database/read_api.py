@@ -94,7 +94,7 @@ def get_users() -> List[Dict[str, Any]]:
 
     Returns List of dicts: [{UserId, Phone, Username, Region}, ...], ordered by Username.
     """
-    sql = "SELECT UserId, Phone, Username, Region FROM dbo.Users ORDER BY Username;"
+    sql = "SELECT * FROM dbo.Users ORDER BY Username;"
     return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 def get_services() -> List[Dict[str, Any]]:

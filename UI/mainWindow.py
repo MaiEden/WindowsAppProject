@@ -1,103 +1,117 @@
 import sys
 from PySide6.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QPushButton,
-    QVBoxLayout, QHBoxLayout, QGridLayout
+    QApplication, QMainWindow, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
+    QGridLayout, QFrame, QLabel, QLineEdit, QComboBox, QDateEdit, QTableWidget, QTableWidgetItem
 )
+from PySide6.QtCore import Qt, QDate
 
 from hallslist.halls_view import HallsView
-from atraction.attractions_view import AttractionsView  # ← ייבוא חדש
-
+from atraction.attractions_view import AttractionsView
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Main Window")
-        self.resize(800, 600)
+        self.setWindowTitle("Modern App")
+        self.resize(1100, 700)
 
-        # ---- מרכז החלון ----
-        self.central_widget = QWidget()
-        self.setCentralWidget(self.central_widget)
+        # ===== יצירת Layout ראשי =====
+        main_layout = QHBoxLayout()
+        container = QWidget()
+        container.setLayout(main_layout)
+        self.setCentralWidget(container)
 
-        # Layout ראשי - Grid
-        self.layout = QGridLayout()
-        self.central_widget.setLayout(self.layout)
+        # ===== Sidebar =====
+        self.sidebar = QFrame()
+        self.sidebar.setObjectName("sidebar")
+        sidebar_layout = QVBoxLayout(self.sidebar)
 
-        # ---- פאנל שמאל ----
-        left_panel = QVBoxLayout()
-        btn_view_profile = QPushButton("View Profile")
-        btn_add_event = QPushButton("Add Event")
-        btn_add_service = QPushButton("Add Service")
+        btn_profile = QPushButton("📄 View Profile")
+        btn_profile.setObjectName("sidebarButton")
 
-        btn_view_profile.clicked.connect(self.view_profile_clicked)
-        btn_add_event.clicked.connect(self.add_event_clicked)
-        btn_add_service.clicked.connect(self.add_service_clicked)
+        btn_event = QPushButton("➕ Add Event")
+        btn_event.setObjectName("sidebarButton")
 
-        left_panel.addWidget(btn_view_profile)
-        left_panel.addWidget(btn_add_event)
-        left_panel.addWidget(btn_add_service)
-        left_panel.addStretch()
+        btn_service = QPushButton("🛠 Add Service")
+        btn_service.setObjectName("sidebarButton")
 
-        # ---- פאנל עליון ----
-        top_panel = QHBoxLayout()
-        btn_photographers = QPushButton("Photographers List")
-        btn_halls = QPushButton("Halls Event")
-        btn_attractions = QPushButton("Attractions List")
+        btn_halls = QPushButton("🏛 Halls Event")
+        btn_halls.setObjectName("sidebarButton")
+        btn_halls.clicked.connect(lambda: self.replace_center_view(HallsView()))
 
-        btn_photographers.clicked.connect(self.photographers_list_clicked)
-        btn_halls.clicked.connect(self.halls_event_clicked)
-        btn_attractions.clicked.connect(self.attractions_list_clicked)
+        btn_attractions = QPushButton("🎉 Attractions List")
+        btn_attractions.setObjectName("sidebarButton")
+        btn_attractions.clicked.connect(lambda: self.replace_center_view(AttractionsView()))
 
-        top_panel.addWidget(btn_photographers)
-        top_panel.addWidget(btn_halls)
-        top_panel.addWidget(btn_attractions)
-        top_panel.addStretch()
+        sidebar_layout.addWidget(btn_profile)
+        sidebar_layout.addWidget(btn_event)
+        sidebar_layout.addWidget(btn_service)
+        sidebar_layout.addWidget(btn_halls)
+        sidebar_layout.addWidget(btn_attractions)
+        sidebar_layout.addStretch()
 
-        # ---- View מרכזי ריק ----
-        self.center_view = QWidget()
-        self.center_view.setStyleSheet("background-color: #f0f0f0;")
+        # ===== Main Content =====
+        self.main_content = QVBoxLayout()
 
-        # ---- הוספה ל־Grid ----
-        self.layout.addLayout(top_panel, 0, 0, 1, 2)     # שורה עליונה
-        self.layout.addLayout(left_panel, 1, 0)          # עמודה שמאל
-        self.layout.addWidget(self.center_view, 1, 1)    # מרכז
+        # --- Top Bar עם פילטרים ---
+        self.topbar = QFrame()
+        self.topbar.setObjectName("topbar")
+        topbar_layout = QHBoxLayout(self.topbar)
 
-        # הגדרות גודל
-        self.layout.setColumnStretch(0, 0)
-        self.layout.setColumnStretch(1, 1)
-        self.layout.setRowStretch(1, 1)
+        self.symbol_input = QLineEdit()
+        self.symbol_input.setPlaceholderText("Enter symbol")
 
-    # --- פונקציות לחיצת כפתורים ---
-    def view_profile_clicked(self):
-        print("כפתור View Profile לא ממומש")
+        self.start_date = QDateEdit(QDate.currentDate())
+        self.end_date = QDateEdit(QDate.currentDate())
 
-    def add_event_clicked(self):
-        print("כפתור Add Event לא ממומש")
+        self.type_combo = QComboBox()
+        self.type_combo.addItems(["All", "Buy", "Sell"])
 
-    def add_service_clicked(self):
-        print("כפתור Add Service לא ממומש")
+        filter_btn = QPushButton("Apply Filters")
+        filter_btn.setObjectName("filterButton")
 
-    def photographers_list_clicked(self):
-        print("כפתור Photographers List לא ממומש")
+        topbar_layout.addWidget(self.symbol_input)
+        topbar_layout.addWidget(self.start_date)
+        topbar_layout.addWidget(self.end_date)
+        topbar_layout.addWidget(self.type_combo)
+        topbar_layout.addWidget(filter_btn)
+        topbar_layout.addStretch()
 
-    def halls_event_clicked(self):
-        print("מעבר לתצוגת Halls")
-        self.replace_center_view(HallsView())
+        # --- טבלה ---
+        self.table = QTableWidget()
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(["Date", "Symbol", "Type", "Price", "Total"])
+        self.table.setRowCount(3)
+        self.table.setItem(0, 0, QTableWidgetItem("2024-03-20"))
+        self.table.setItem(0, 1, QTableWidgetItem("AAPL"))
+        buy_item = QTableWidgetItem("Buy")
+        buy_item.setBackground(Qt.green)
+        self.table.setItem(0, 2, buy_item)
+        self.table.setItem(0, 3, QTableWidgetItem("$150"))
+        self.table.setItem(0, 4, QTableWidgetItem("$1500"))
 
-    def attractions_list_clicked(self):
-        print("מעבר לתצוגת Attractions")
-        self.replace_center_view(AttractionsView())
+        # ===== הוספה ל-Layout =====
+        self.main_content.addWidget(self.topbar)
+        self.main_content.addWidget(self.table)
+
+        main_layout.addWidget(self.sidebar)
+        main_layout.addLayout(self.main_content)
 
     def replace_center_view(self, new_view: QWidget):
-        # מסיר את ה־View הישן מה־layout
-        self.layout.removeWidget(self.center_view)
-        self.center_view.deleteLater()
-        # מוסיף את החדש
-        self.center_view = new_view
-        self.layout.addWidget(self.center_view, 1, 1)
-
+        # החלפה פשוטה של ה-view המרכזי
+        while self.main_content.count() > 1:
+            item = self.main_content.takeAt(1)
+            widget = item.widget()
+            if widget:
+                widget.deleteLater()
+        self.main_content.addWidget(new_view)
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+
+    # טעינת ה-QSS
+    with open("style.qss", "r", encoding="utf-8") as f:
+        app.setStyleSheet(f.read())
+
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
