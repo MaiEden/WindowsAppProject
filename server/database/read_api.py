@@ -16,10 +16,11 @@ This module provides:
 
 import pyodbc
 from typing import List, Dict, Any, Optional, Sequence
-from db_config import get_connection
+from server.gateway.db_config import get_connection
 from decimal import Decimal
+from server.gateway.DBgateway import *
 
-
+db = DbGateway()
 def _fetchall_dicts(cur: pyodbc.Cursor) -> List[Dict[str, Any]]:
     """
     Convert the current cursor resultset into a list of dictionaries.
@@ -87,7 +88,6 @@ def print_table(
         line = " | ".join(cell(r.get(col), w) for col, w in zip(columns, widths))
         print(line)
 
-
 def get_users() -> List[Dict[str, Any]]:
     """
     Fetch all users with basic fields.
@@ -95,11 +95,7 @@ def get_users() -> List[Dict[str, Any]]:
     Returns List of dicts: [{UserId, Phone, Username, Region}, ...], ordered by Username.
     """
     sql = "SELECT UserId, Phone, Username, Region FROM dbo.Users ORDER BY Username;"
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
-
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 def get_services() -> List[Dict[str, Any]]:
     """
@@ -119,10 +115,7 @@ def get_services() -> List[Dict[str, Any]]:
     FROM dbo.Services
     ORDER BY ServiceType;
     """
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 
 def get_events() -> List[Dict[str, Any]]:
@@ -142,10 +135,7 @@ def get_events() -> List[Dict[str, Any]]:
     INNER JOIN dbo.Users u ON u.UserId = e.ManagerUserId
     ORDER BY e.EventDate, e.EventTime;
     """
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 
 def get_user_services() -> List[Dict[str, Any]]:
@@ -161,10 +151,7 @@ def get_user_services() -> List[Dict[str, Any]]:
     INNER JOIN dbo.Services s ON s.ServiceId = us.ServiceId
     ORDER BY u.Username, s.ServiceType;
     """
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 
 def report_users_with_services_and_events() -> List[Dict[str, Any]]:
@@ -206,10 +193,7 @@ def report_users_with_services_and_events() -> List[Dict[str, Any]]:
     FROM dbo.Users u
     ORDER BY u.Username;
     """
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
 
 def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
@@ -242,15 +226,12 @@ def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
     INNER JOIN dbo.Users u ON u.UserId = e.ManagerUserId
     ORDER BY e.EventDate, e.EventTime;
     """
-    with get_connection() as conn:
-        cur = conn.cursor()
-        cur.execute(sql)
-        return _fetchall_dicts(cur)
+    return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
+
 
 
 if __name__ == "__main__":
     # Smoke tests: print a sample of each endpoint so you can see the shape quickly.
-    from pprint import pprint
     print("Users:"); print_table(get_users())
     print("\nServices:"); print_table(get_services())
     print("\nEvents:"); print_table(get_events())

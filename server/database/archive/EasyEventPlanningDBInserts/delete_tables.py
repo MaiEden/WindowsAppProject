@@ -1,11 +1,9 @@
-# archive/EasyEventPlanningDBInserts/drop_all_tables.py
 """
 drop_all_tables.py
 Drops all user tables in the current database after removing foreign keys.
 IRREVERSIBLE. Make a backup or be sure you want to wipe the schema.
 """
-
-from server.database.db_config import get_connection
+from server.gateway.DBgateway import *
 
 SQL = r"""
 SET NOCOUNT ON;
@@ -28,10 +26,9 @@ IF @sql <> N'' EXEC sp_executesql @sql;
 """
 
 def main() -> None:
-    with get_connection(autocommit=True) as conn:
-        cur = conn.cursor()
-        cur.execute(SQL)
-        print("All dbo tables dropped successfully.")
+    db_gw = DbGateway()
+    db_gw.execute(SQL, commit=True)
+    print("All dbo tables dropped successfully.")
 
 if __name__ == "__main__":
     main()

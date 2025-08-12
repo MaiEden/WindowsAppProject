@@ -1,12 +1,9 @@
 from __future__ import annotations
-
 from datetime import datetime, timezone, timedelta
 from typing import Optional, Dict, Any
 import asyncio
-
-import httpx
 from pydantic import BaseModel
-
+from server.gateway.AsyncGateway import *
 # =========================
 #   Exceptions & Constants
 # =========================
@@ -100,6 +97,7 @@ def validate_supported_datetime(dt_utc: datetime, now_utc: datetime) -> None:
 #   Open-Meteo Calls
 # =========================
 
+gateway = AsyncGateway(timeout=12)
 async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) -> Weather:
     """
     Fetch a single hour from Open-Meteo forecast endpoint using start_hour=end_hour.
@@ -121,10 +119,8 @@ async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) ->
         # Ensure we can reach up to 48h back via forecast
         "past_days": 2,
     }
-    async with httpx.AsyncClient(timeout=12) as client:
-        r = await client.get(base, params=params)
-        r.raise_for_status()
-        js = r.json()
+
+    js = await gateway.get(base, params=params)
 
     h = js.get("hourly", {})
     times = h.get("time", [])
@@ -158,10 +154,8 @@ async def fetch_open_meteo_archive(lat: float, lon: float, dt_utc: datetime) -> 
         "precipitation_unit": "mm",
         "temperature_unit": "celsius",
     }
-    async with httpx.AsyncClient(timeout=12) as client:
-        r = await client.get(base, params=params)
-        r.raise_for_status()
-        js = r.json()
+
+    js = await gateway.get(base, params=params)
 
     h = js.get("hourly", {})
     times = h.get("time", [])

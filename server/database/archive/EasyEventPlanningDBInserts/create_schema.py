@@ -2,7 +2,8 @@
 create_schema.py
 Create the database schema for the Events app.
 """
-from server.database.db_config import get_connection  # import your config
+# from server.gateway.db_config import get_connection  # import your config
+from server.gateway.DBgateway import *
 
 SCHEMA_SQL = """
 --Create the schema if it doesn't exist
@@ -72,9 +73,13 @@ END;
 """
 
 def main() -> None:
-    with get_connection(autocommit=True) as conn:
-        conn.cursor().execute(SCHEMA_SQL)
-        print("Schema ensured (tables created as needed).")
+    # with get_connection(autocommit=True) as conn:
+    #     conn.cursor().execute(SCHEMA_SQL)
+    #     print("Schema ensured (tables created as needed).")
+    db_gw = DbGateway()
+    db_gw.execute(SCHEMA_SQL, commit=True)
+    print(f"Schema ensured (tables created as needed).")
+
 
 if __name__ == "__main__":
     main()
