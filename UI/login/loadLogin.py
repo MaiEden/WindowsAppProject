@@ -39,7 +39,7 @@ if __name__ == "__main__":
     presenter = LoginPresenter(model, view)
 
     # Load external stylesheet
-    qss = load_stylesheet("loginstyle.qss")
+    qss = load_stylesheet("../style&icons/UIstyle.qss")
     if qss:
         app.setStyleSheet(qss)
 
