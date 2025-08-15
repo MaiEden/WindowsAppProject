@@ -8,8 +8,10 @@ from server.gateway.AsyncGateway import *
 #   Exceptions & Constants
 # =========================
 
+
 class UnsupportedDateError(ValueError):
     """Raised when the requested datetime is outside supported forecast/archive ranges."""
+
 
 # Open-Meteo limits (practical)
 FORECAST_MAX_FWD_DAYS = 16             # forecast horizon ~16 days ahead
@@ -18,6 +20,8 @@ ARCHIVE_LATEST_DELAY_DAYS = 5          # archive latency for very recent past
 # =========================
 #   Data Model
 # =========================
+
+
 # This class defines the unified weather data structure used in the application.
 class Weather(BaseModel):
     # UTC timestamp of the forecast/observation in ISO-8601 format (e.g., "2025-09-01T16:00")
@@ -44,6 +48,7 @@ class Weather(BaseModel):
 #   Time Parsing & Validation
 # =========================
 
+
 def parse_iso_to_utc(dt: str) -> datetime:
     """
     Parse ISO-8601 datetime string WITH timezone into a UTC datetime aligned to top-of-hour.
@@ -65,6 +70,7 @@ def parse_iso_to_utc(dt: str) -> datetime:
 
     # work on exact hours
     return d.astimezone(timezone.utc).replace(minute=0, second=0, microsecond=0)
+
 
 def validate_supported_datetime(dt_utc: datetime, now_utc: datetime) -> None:
     """
@@ -93,11 +99,13 @@ def validate_supported_datetime(dt_utc: datetime, now_utc: datetime) -> None:
             "Pick a time at least 5 days before today, or within the last 2 days (covered by forecast with past_days)."
         )
 
+
 # =========================
 #   Open-Meteo Calls
 # =========================
-
 gateway = AsyncGateway(timeout=12)
+
+
 async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) -> Weather:
     """
     Fetch a single hour from Open-Meteo forecast endpoint using start_hour=end_hour.
@@ -135,6 +143,7 @@ async def fetch_open_meteo_forecast(lat: float, lon: float, dt_utc: datetime) ->
         precipitation_probability_percent=(h.get("precipitation_probability") or [None])[0],
         source="open-meteo-forecast",
     )
+
 
 async def fetch_open_meteo_archive(lat: float, lon: float, dt_utc: datetime) -> Weather:
     """
@@ -177,6 +186,7 @@ async def fetch_open_meteo_archive(lat: float, lon: float, dt_utc: datetime) -> 
         source="open-meteo-archive",
     )
 
+
 # =========================
 #   Public API (async & sync)
 # =========================
@@ -204,6 +214,7 @@ async def _get_weather_async(lat: float, lon: float, datetime_iso: str) -> Dict[
     else:
         w = await fetch_open_meteo_archive(lat, lon, dt_utc)
         return w.as_json()
+
 
 def get_weather(lat: float, lon: float, datetime_iso: str) -> Dict[str, Any]:
     """
