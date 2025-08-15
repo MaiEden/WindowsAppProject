@@ -228,13 +228,25 @@ def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
     """
     return db.query(sql)  # DbGateway.query כבר מחזיר רשימת dictים
 
+def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
+    """
+    Fetch a single user by UserId.
+    Returns:
+        A dict with user details or None if not found.
+    """
+    sql = "SELECT * FROM dbo.Users WHERE Username = ?;"
+    results = db.query(sql, (user_name,))
+    return results[0] if results else None
+
 
 
 if __name__ == "__main__":
     # Smoke tests: print a sample of each endpoint so you can see the shape quickly.
+    print(get_user_by_user_name("Noa Hadad"))
     print("Users:"); print_table(get_users())
     print("\nServices:"); print_table(get_services())
     print("\nEvents:"); print_table(get_events())
     print("\nUserServices:"); print_table(get_user_services())
     print("\nReport: Users with external_services & events"); print_table(report_users_with_services_and_events())
     print("\nReport: Events with external_services & manager"); print_table(report_events_with_services_and_manager())
+

@@ -4,8 +4,8 @@ Presenter: mediates between View and Model
 - Keeps UI logic out of the Model and heavy logic out of the View
 """
 
-from modelLogin import AuthModel, Credentials
-from viewLogin import LoginView
+from login_model import AuthModel
+from login_view import LoginView
 
 class LoginPresenter:
 
@@ -17,6 +17,7 @@ class LoginPresenter:
     def _connect_signals(self):
         self.view.sign_in_clicked.connect(self.on_sign_in)
         self.view.demo_clicked.connect(self.on_use_demo)
+        # self.view.sign_up_clicked.connect(self.on_sign_up)
 
     # ---- Handlers ----
     def on_sign_in(self):
@@ -29,6 +30,11 @@ class LoginPresenter:
 
     def on_use_demo(self):
         self.view.set_demo_credentials("admin", "secret123")
+
+    # def on_sign_up(self):
+
+
+
 
     def print_result(self, ok: bool):
         """Print to console as requested."""

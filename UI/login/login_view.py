@@ -26,6 +26,7 @@ class LoginView(QWidget):
     # Signals the view sends to the presenter
     sign_in_clicked = Signal()
     demo_clicked = Signal()
+    sign_up_clicked = Signal()
 
     def __init__(self):
         super().__init__()
@@ -72,6 +73,9 @@ class LoginView(QWidget):
         self.sign_in_btn.setCursor(Qt.PointingHandCursor)
         self.sign_in_btn.setMinimumHeight(44)
 
+        self.sign_up_btn = QPushButton("Create account", objectName="Link")
+        self.sign_up_btn.setCursor(Qt.PointingHandCursor)
+
         self.use_demo_btn = QPushButton("Use demo credentials", objectName="Link")
         # Change the mouse cursor to a pointing hand when hovering over the button
         self.use_demo_btn.setCursor(Qt.PointingHandCursor)
@@ -84,7 +88,9 @@ class LoginView(QWidget):
         layout.addWidget(self.message)
         layout.addSpacing(6)
         layout.addWidget(self.sign_in_btn)
+        layout.addWidget(self.sign_up_btn, alignment=Qt.AlignHCenter)
         layout.addWidget(self.use_demo_btn, alignment=Qt.AlignHCenter)
+
         layout.addSpacing(4)
 
         box = QVBoxLayout()
@@ -98,6 +104,7 @@ class LoginView(QWidget):
     def _wire_events(self):
         # Buttons
         self.sign_in_btn.clicked.connect(self.sign_in_clicked.emit)
+        self.sign_up_btn.clicked.connect(self.sign_up_clicked.emit)
         self.use_demo_btn.clicked.connect(self.demo_clicked.emit)
         # Enter to submit
         self.username.returnPressed.connect(self.sign_in_clicked.emit)

@@ -9,9 +9,9 @@ import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
 
-from modelLogin import AuthModel
-from viewLogin import LoginView
-from presenterLogin import LoginPresenter
+from login_model import AuthModel
+from login_view import LoginView
+from login_presenter import LoginPresenter
 
 
 def load_stylesheet(path: str) -> str:
