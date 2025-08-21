@@ -1,0 +1,23 @@
+QFrame {
+    border: 1px solid #dcdcdc;
+    border-radius: 10px;
+    background-color: #ffffff;
+}
+
+QLabel#HallName {
+    font-size: 14px;
+    font-weight: bold;
+    margin: 4px;
+}
+
+QLabel#Meta {
+    color: #666666;
+    font-size: 11px;
+    margin: 0 4px;
+}
+
+QLabel#Description {
+    color: #333333;
+    font-size: 11px;
+    margin: 4px;
+}
