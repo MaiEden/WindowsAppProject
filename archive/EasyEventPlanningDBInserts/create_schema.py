@@ -1,85 +1,164 @@
 """
-create_schema.py
-Create the database schema for the Events app.
+create_schema_poly.py
+Create polymorphic schema for Events app.
+Each service has its own table, linked via (ServiceType, ServiceKey).
 """
-# from server.gateway.db_config import get_connection  # import your config
-from server.gateway.DBgateway import *
+
+from server.gateway.DBgateway import DbGateway
 
 SCHEMA_SQL = """
---Create the schema if it doesn't exist
 -- Users
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Users' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Users')
 BEGIN
     CREATE TABLE dbo.Users (
         UserId INT IDENTITY(1,1) PRIMARY KEY,
         Phone NVARCHAR(30) NOT NULL,
         Username NVARCHAR(100) NOT NULL UNIQUE,
-        PasswordHash NVARCHAR(200) NOT NULL, -- demo only; hash properly in production
+        PasswordHash NVARCHAR(200) NOT NULL,
         Region NVARCHAR(50) NOT NULL
     );
 END;
 
--- Services
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Services' AND schema_id = SCHEMA_ID('dbo'))
-BEGIN
-    CREATE TABLE dbo.Services (
-        ServiceId INT IDENTITY(1,1) PRIMARY KEY,
-        ServiceType NVARCHAR(100) NOT NULL,
-        ServiceDescription NVARCHAR(500) NULL,
-        Region NVARCHAR(50) NOT NULL,
-        MinAge INT NULL,
-        MaxAge INT NULL,
-        Price DECIMAL(10,2) NULL
-    );
-END;
-
 -- Events
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Events' AND schema_id = SCHEMA_ID('dbo'))
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Event')
 BEGIN
-    CREATE TABLE dbo.Events (
+    CREATE TABLE dbo.Event (
         EventId INT IDENTITY(1,1) PRIMARY KEY,
         EventDate DATE NOT NULL,
         EventTime TIME(0) NOT NULL,
         EventType NVARCHAR(100) NOT NULL,
         ManagerUserId INT NOT NULL,
-        CONSTRAINT FK_Events_Users_Manager FOREIGN KEY (ManagerUserId)
+        CONSTRAINT FK_Event_User FOREIGN KEY (ManagerUserId)
             REFERENCES dbo.Users(UserId)
     );
 END;
 
--- Users <-> Services (which external_services a user offers)
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='UserServices' AND schema_id = SCHEMA_ID('dbo'))
+-- UserService mapping
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='UserService')
 BEGIN
-    CREATE TABLE dbo.UserServices (
+    CREATE TABLE dbo.UserService (
         UserId INT NOT NULL,
-        ServiceId INT NOT NULL,
-        CONSTRAINT PK_UserServices PRIMARY KEY (UserId, ServiceId),
-        CONSTRAINT FK_US_User FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId) ON DELETE CASCADE,
-        CONSTRAINT FK_US_Service FOREIGN KEY (ServiceId) REFERENCES dbo.Services(ServiceId) ON DELETE CASCADE
+        ServiceType NVARCHAR(50) NOT NULL,  -- e.g. 'Hall', 'DJ'
+        ServiceKey INT NOT NULL,            -- the PK in that service table
+        PRIMARY KEY (UserId, ServiceType, ServiceKey),
+        CONSTRAINT FK_UserService_User FOREIGN KEY (UserId) REFERENCES dbo.Users(UserId) ON DELETE CASCADE
     );
 END;
 
--- Events <-> Services (external_services planned/ordered for an event)
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='EventServices' AND schema_id = SCHEMA_ID('dbo'))
+-- EventService mapping
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='EventService')
 BEGIN
-    CREATE TABLE dbo.EventServices (
+    CREATE TABLE dbo.EventService (
         EventId INT NOT NULL,
-        ServiceId INT NOT NULL,
-        CONSTRAINT PK_EventServices PRIMARY KEY (EventId, ServiceId),
-        CONSTRAINT FK_ES_Event FOREIGN KEY (EventId) REFERENCES dbo.Events(EventId) ON DELETE CASCADE,
-        CONSTRAINT FK_ES_Service FOREIGN KEY (ServiceId) REFERENCES dbo.Services(ServiceId) ON DELETE CASCADE
+        ServiceType NVARCHAR(50) NOT NULL,
+        ServiceKey INT NOT NULL,
+        PRIMARY KEY (EventId, ServiceType, ServiceKey),
+        CONSTRAINT FK_EventService_Event FOREIGN KEY (EventId) REFERENCES dbo.Event(EventId) ON DELETE CASCADE
+    );
+END;
+
+-- === Service-specific tables ===
+
+-- Halls
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Hall')
+BEGIN
+    CREATE TABLE dbo.Hall (
+        HallId INT IDENTITY(1,1) PRIMARY KEY,
+        HallName NVARCHAR(200) NOT NULL,
+        HallType NVARCHAR(100) NOT NULL,       -- Synagogue / Restaurant / Garden...
+        Capacity INT NULL,
+        Region NVARCHAR(50) NOT NULL,
+        Latitude DECIMAL(9,6) NULL,
+        Longitude DECIMAL(9,6) NULL,
+        Description NVARCHAR(MAX) NULL,
+        PricePerHour DECIMAL(10,2) NULL,
+        PricePerDay DECIMAL(10,2) NULL,
+        PricePerPerson DECIMAL(10,2) NULL,
+        ParkingAvailable BIT NOT NULL DEFAULT 0,
+        WheelchairAccessible BIT NOT NULL DEFAULT 0,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL,
+        WebsiteUrl NVARCHAR(500) NULL,
+        PhotoUrl NVARCHAR(500) NULL
+    );
+END;
+
+-- DJs
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='DJ')
+BEGIN
+    CREATE TABLE dbo.DJ (
+        DJId INT IDENTITY(1,1) PRIMARY KEY,
+        DJName NVARCHAR(200) NOT NULL,
+        Equipment NVARCHAR(500) NULL,
+        Region NVARCHAR(50) NOT NULL,
+        Price DECIMAL(10,2) NULL,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL
+    );
+END;
+
+-- Catering
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Catering')
+BEGIN
+    CREATE TABLE dbo.Catering (
+        CateringId INT IDENTITY(1,1) PRIMARY KEY,
+        CateringName NVARCHAR(200) NOT NULL,
+        CuisineType NVARCHAR(100) NULL,
+        Region NVARCHAR(50) NOT NULL,
+        PricePerPerson DECIMAL(10,2) NULL,
+        Kosher BIT NOT NULL DEFAULT 0,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL
+    );
+END;
+
+-- Decor
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Decor')
+BEGIN
+    CREATE TABLE dbo.Decor (
+        DecorId INT IDENTITY(1,1) PRIMARY KEY,
+        DecorName NVARCHAR(200) NOT NULL,
+        Style NVARCHAR(100) NULL,
+        Region NVARCHAR(50) NOT NULL,
+        Price DECIMAL(10,2) NULL,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL
+    );
+END;
+
+-- Photography
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Photography')
+BEGIN
+    CREATE TABLE dbo.Photography (
+        PhotographyId INT IDENTITY(1,1) PRIMARY KEY,
+        PhotographerName NVARCHAR(200) NOT NULL,
+        PackageDescription NVARCHAR(500) NULL,
+        Region NVARCHAR(50) NOT NULL,
+        Price DECIMAL(10,2) NULL,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL
+    );
+END;
+
+-- Attractions
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Attraction')
+BEGIN
+    CREATE TABLE dbo.Attraction (
+        AttractionId INT IDENTITY(1,1) PRIMARY KEY,
+        AttractionName NVARCHAR(200) NOT NULL,
+        AgeMin INT NULL,
+        AgeMax INT NULL,
+        Region NVARCHAR(50) NOT NULL,
+        Price DECIMAL(10,2) NULL,
+        Description NVARCHAR(500) NULL
     );
 END;
 """
 
 def main() -> None:
-    # with get_connection(autocommit=True) as conn:
-    #     conn.cursor().execute(SCHEMA_SQL)
-    #     print("Schema ensured (tables created as needed).")
-    db_gw = DbGateway()
-    db_gw.execute(SCHEMA_SQL, commit=True)
-    print(f"Schema ensured (tables created as needed).")
-
+    db = DbGateway()
+    db.execute(SCHEMA_SQL, commit=True)
+    print("Polymorphic schema created successfully.")
 
 if __name__ == "__main__":
     main()

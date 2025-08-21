@@ -5,8 +5,12 @@ from PySide6.QtWidgets import (
 )
 from PySide6.QtCore import Qt, QDate
 
-from hallslist.halls_view import HallsView
+
 from atraction.attractions_view import AttractionsView
+from hallslist.halls_model import HallsModel
+from hallslist.halls_view import HallsView
+from hallslist.halls_presenter import HallsPresenter
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -36,7 +40,7 @@ class MainWindow(QMainWindow):
 
         btn_halls = QPushButton("🏛 Halls Event")
         btn_halls.setObjectName("sidebarButton")
-        btn_halls.clicked.connect(lambda: self.replace_center_view(HallsView()))
+        btn_halls.clicked.connect(self.show_halls)   # ✅ עכשיו זה יעבוד
 
         btn_attractions = QPushButton("🎉 Attractions List")
         btn_attractions.setObjectName("sidebarButton")
@@ -96,6 +100,12 @@ class MainWindow(QMainWindow):
         main_layout.addWidget(self.sidebar)
         main_layout.addLayout(self.main_content)
 
+    def show_halls(self):
+        model = HallsModel()
+        view = HallsView()
+        presenter = HallsPresenter(model, view)
+        self.replace_center_view(view)
+
     def replace_center_view(self, new_view: QWidget):
         # החלפה פשוטה של ה-view המרכזי
         while self.main_content.count() > 1:
@@ -104,6 +114,7 @@ class MainWindow(QMainWindow):
             if widget:
                 widget.deleteLater()
         self.main_content.addWidget(new_view)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
