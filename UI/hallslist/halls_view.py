@@ -1,21 +1,37 @@
 """
-View: Modern halls page using Cards layout
+View: Modern halls page using Cards layout.
+Responsible only for UI rendering and user interactions.
 """
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QScrollArea, QFrame,
     QGridLayout, QLineEdit, QComboBox, QHBoxLayout
 )
-
 from PySide6.QtGui import QPixmap
 import requests
 
 
 class HallsView(QWidget):
-    # Signals -> Presenter
+    """
+    UI class for displaying event halls as card-based layout.
+
+    Provides:
+        - Filters (region, type, search box)
+        - Scrollable grid of hall cards
+        - Signal when filters are changed
+    """
+
+    # Signal emitted whenever filters are changed
     filter_changed = Signal()
 
     def __init__(self):
+        """
+        Initialize the halls view.
+
+        - Creates header, filter bar, and scrollable grid.
+        - Loads style sheet from `halls_style.qss`.
+        """
         super().__init__()
         self.setWindowTitle("Event Halls")
         self.resize(1100, 750)
@@ -43,10 +59,10 @@ class HallsView(QWidget):
         filter_bar.addWidget(self.search_box)
         root.addLayout(filter_bar)
 
-        # ✅ תיקון – מנטרלים את הפרמטרים שהסיגנלים שולחים
+        # Emit signal when filters are changed
         self.filter_region.currentIndexChanged.connect(lambda _: self.filter_changed.emit())
         self.filter_type.currentIndexChanged.connect(lambda _: self.filter_changed.emit())
-        self.search_box.textChanged.connect(lambda _: self.filter_changed.emit())
+        self.search_box.returnPressed.connect(lambda: self.filter_changed.emit())
 
         # ---- Scroll area for cards ----
         scroll = QScrollArea()
@@ -59,14 +75,19 @@ class HallsView(QWidget):
         scroll.setWidget(self.cards_container)
         root.addWidget(scroll)
 
-        # load qss
+        # Load QSS style
         import os
         style_path = os.path.join(os.path.dirname(__file__), "halls_style.qss")
         with open(style_path, "r", encoding="utf-8") as f:
             self.setStyleSheet(f.read())
 
     def populate_filters(self, halls):
-        """Fill region/type filters based on data."""
+        """
+        Populate the region and type dropdown filters based on hall data.
+
+        Args:
+            halls (list[dict]): List of halls with keys "Region" and "HallType".
+        """
         regions = sorted({h["Region"] for h in halls if h.get("Region")})
         types = sorted({h["HallType"] for h in halls if h.get("HallType")})
 
@@ -79,8 +100,13 @@ class HallsView(QWidget):
         self.filter_type.addItems(types)
 
     def render_halls(self, halls):
-        """Render hall cards into grid."""
-        # Clear old
+        """
+        Render hall cards into the grid.
+
+        Args:
+            halls (list[dict]): List of hall dictionaries, each representing one hall.
+        """
+        # Clear old cards
         for i in reversed(range(self.grid.count())):
             item = self.grid.itemAt(i)
             if item:
@@ -94,6 +120,16 @@ class HallsView(QWidget):
             self.grid.addWidget(card, i // 4, i % 4)
 
     def _make_card(self, hall: dict):
+        """
+        Create a single hall card widget.
+
+        Args:
+            hall (dict): Hall data with keys such as
+                         "HallName", "HallType", "Region", "Description", "PhotoUrl".
+
+        Returns:
+            QFrame: A styled card containing hall information.
+        """
         card = QFrame()
         layout = QVBoxLayout(card)
         layout.setContentsMargins(4, 4, 4, 4)
@@ -134,7 +170,7 @@ class HallsView(QWidget):
         desc_label = QLabel(desc_short)
         desc_label.setWordWrap(True)
         desc_label.setObjectName("Description")
-        desc_label.setFixedHeight(32)  # בערך שתי שורות
+        desc_label.setFixedHeight(32)
         layout.addWidget(desc_label)
 
         return card

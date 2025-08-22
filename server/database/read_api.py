@@ -4,14 +4,19 @@ Read-only API to fetch data and aggregated reports from the Events app schema.
 
 This module provides:
 -------------------------
-- get_users():            Basic list of users.
-- get_halls():            Halls catalog.
-- get_events():           Events with the manager (user) name.
-- get_user_services():    Flat mapping of which services each user offers.
-- report_users_with_services_and_events():
-                         Per-user aggregation: offered services + events managed.
-- report_events_with_services_and_manager():
-                         Per-event aggregation: manager + services planned.
+- get_users():   Return list of all users.
+- get_halls():   Full catalog of halls.
+- get_halls_filtered(): Filter halls by region, type, and search text.
+- get_events():  Events with manager username.
+- get_user_services(): Mapping of services offered by each user.
+- report_users_with_services_and_events(): Per-user aggregation.
+- report_events_with_services_and_manager(): Per-event aggregation.
+- report_halls_with_region(): Halls grouped by region.
+- get_user_by_user_name(): Lookup of a single user.
+
+Additionally:
+- _fetchall_dicts(): Converts pyodbc cursor results to list of dicts.
+- print_table(): Helper for pretty-printing rows in tabular format.
 """
 
 import pyodbc
@@ -24,7 +29,8 @@ db = DbGateway()
 
 def _fetchall_dicts(cur: pyodbc.Cursor) -> List[Dict[str, Any]]:
     """
-    Convert the current cursor resultset into a list of dictionaries.
+    Convert a pyodbc cursor into a list of dictionaries.
+    Each dict maps {column_name: value}.
     """
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
@@ -36,7 +42,12 @@ def print_table(
         max_col_width: int = 30,
 ) -> None:
     """
-    Pretty-print a list of dictionaries as a fixed-width table.
+    Pretty-print a list of dictionaries as a text table.
+
+    Args:
+        rows: list of dict rows.
+        columns: optional explicit list of columns; if None, infer from data.
+        max_col_width: truncate long values to this width.
     """
     if not rows:
         print("(no rows)")
@@ -81,6 +92,7 @@ def print_table(
 
 
 def get_users() -> List[Dict[str, Any]]:
+    """Fetch all users ordered by username."""
     sql = "SELECT * FROM dbo.Users ORDER BY Username;"
     return db.query(sql)
 
@@ -88,35 +100,20 @@ def get_users() -> List[Dict[str, Any]]:
 def get_halls() -> List[Dict[str, Any]]:
     """
     Fetch all hall details.
-
-    Returns list of dicts:
-    [{HallId, HallName, HallType, Capacity, Region,
-      Latitude, Longitude, Description, PricePerHour, PricePerDay, PricePerPerson,
-      ParkingAvailable, WheelchairAccessible, ContactPhone, ContactEmail, WebsiteUrl, PhotoUrl}, ...]
+    Returns a list of dictionaries with hall metadata.
     """
     sql = """
     SELECT
-        h.HallId,
-        h.HallName,
-        h.HallType,
-        h.Capacity,
-        h.Region,
-        h.Latitude,
-        h.Longitude,
-        h.Description,
-        h.PricePerHour,
-        h.PricePerDay,
-        h.PricePerPerson,
-        h.ParkingAvailable,
-        h.WheelchairAccessible,
-        h.ContactPhone,
-        h.ContactEmail,
-        h.WebsiteUrl,
-        h.PhotoUrl
+        h.HallId, h.HallName, h.HallType, h.Capacity, h.Region,
+        h.Latitude, h.Longitude, h.Description,
+        h.PricePerHour, h.PricePerDay, h.PricePerPerson,
+        h.ParkingAvailable, h.WheelchairAccessible,
+        h.ContactPhone, h.ContactEmail, h.WebsiteUrl, h.PhotoUrl
     FROM dbo.Hall h
     ORDER BY h.HallName;
     """
     return db.query(sql)
+
 
 def get_halls_filtered(
         region: Optional[str] = None,
@@ -124,27 +121,16 @@ def get_halls_filtered(
         search: Optional[str] = None
 ) -> List[Dict[str, Any]]:
     """
-    Fetch halls with optional filters for region, type, and search by name/description.
+    Fetch halls with optional filters for region, type, and free-text search
+    across name/description.
     """
     sql = """
     SELECT
-        h.HallId,
-        h.HallName,
-        h.HallType,
-        h.Capacity,
-        h.Region,
-        h.Latitude,
-        h.Longitude,
-        h.Description,
-        h.PricePerHour,
-        h.PricePerDay,
-        h.PricePerPerson,
-        h.ParkingAvailable,
-        h.WheelchairAccessible,
-        h.ContactPhone,
-        h.ContactEmail,
-        h.WebsiteUrl,
-        h.PhotoUrl
+        h.HallId, h.HallName, h.HallType, h.Capacity, h.Region,
+        h.Latitude, h.Longitude, h.Description,
+        h.PricePerHour, h.PricePerDay, h.PricePerPerson,
+        h.ParkingAvailable, h.WheelchairAccessible,
+        h.ContactPhone, h.ContactEmail, h.WebsiteUrl, h.PhotoUrl
     FROM dbo.Hall h
     WHERE 1=1
     """
@@ -164,11 +150,11 @@ def get_halls_filtered(
         params.extend([like, like])
 
     sql += " ORDER BY h.HallName;"
-
     return db.query(sql, params)
 
 
 def get_events() -> List[Dict[str, Any]]:
+    """Fetch all events with manager username."""
     sql = """
     SELECT e.EventId,
            e.EventDate,
@@ -183,9 +169,7 @@ def get_events() -> List[Dict[str, Any]]:
 
 
 def get_user_services() -> List[Dict[str, Any]]:
-    """
-    Flat mapping of which services each user offers.
-    """
+    """Return mapping of services offered by each user."""
     sql = """
     SELECT u.Username, us.ServiceType, us.ServiceKey
     FROM dbo.UserService us
@@ -196,28 +180,23 @@ def get_user_services() -> List[Dict[str, Any]]:
 
 
 def report_users_with_services_and_events() -> List[Dict[str, Any]]:
+    """
+    Aggregated report:
+    For each user show region, services offered, and events managed.
+    """
     sql = """
     SELECT
-        u.UserId,
-        u.Username,
-        u.Phone,
-        u.Region,
-        ISNULL((
-            SELECT STRING_AGG(d.ServiceType, ', ')
-            FROM (
-                SELECT DISTINCT us2.ServiceType
-                FROM dbo.UserService us2
-                WHERE us2.UserId = u.UserId
-            ) d
-        ), 'None') AS ServicesOffered,
-        ISNULL((
-            SELECT STRING_AGG(d.EventLabel, ' | ')
-            FROM (
-                SELECT DISTINCT CONVERT(NVARCHAR(30), e.EventDate) + ' ' + e.EventType AS EventLabel
-                FROM dbo.Event e
-                WHERE e.ManagerUserId = u.UserId
-            ) d
-        ), 'None') AS EventsManaged
+        u.UserId, u.Username, u.Phone, u.Region,
+        ISNULL((SELECT STRING_AGG(d.ServiceType, ', ')
+                FROM (SELECT DISTINCT us2.ServiceType
+                      FROM dbo.UserService us2
+                      WHERE us2.UserId = u.UserId) d),
+               'None') AS ServicesOffered,
+        ISNULL((SELECT STRING_AGG(d.EventLabel, ' | ')
+                FROM (SELECT DISTINCT CONVERT(NVARCHAR(30), e.EventDate) + ' ' + e.EventType AS EventLabel
+                      FROM dbo.Event e
+                      WHERE e.ManagerUserId = u.UserId) d),
+               'None') AS EventsManaged
     FROM dbo.Users u
     ORDER BY u.Username;
     """
@@ -225,6 +204,10 @@ def report_users_with_services_and_events() -> List[Dict[str, Any]]:
 
 
 def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
+    """
+    Aggregated report:
+    For each event show manager username and list of services attached.
+    """
     sql = """
     SELECT
         e.EventId,
@@ -232,14 +215,11 @@ def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
         CONVERT(NVARCHAR(8), e.EventTime, 108) AS EventTime,
         e.EventType,
         u.Username AS Manager,
-        ISNULL((
-            SELECT STRING_AGG(d.ServiceType, ', ')
-            FROM (
-                SELECT DISTINCT es.ServiceType
-                FROM dbo.EventService es
-                WHERE es.EventId = e.EventId
-            ) d
-        ), 'None') AS Services
+        ISNULL((SELECT STRING_AGG(d.ServiceType, ', ')
+                FROM (SELECT DISTINCT es.ServiceType
+                      FROM dbo.EventService es
+                      WHERE es.EventId = e.EventId) d),
+               'None') AS Services
     FROM dbo.Event e
     INNER JOIN dbo.Users u ON u.UserId = e.ManagerUserId
     ORDER BY e.EventDate, e.EventTime;
@@ -248,15 +228,10 @@ def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
 
 
 def report_halls_with_region() -> List[Dict[str, Any]]:
+    """List halls by region, including capacity and pricing."""
     sql = """
-    SELECT
-        h.HallName,
-        h.HallType,
-        h.Region,
-        h.Capacity,
-        h.PricePerPerson,
-        h.PricePerHour,
-        h.PricePerDay
+    SELECT h.HallName, h.HallType, h.Region,
+           h.Capacity, h.PricePerPerson, h.PricePerHour, h.PricePerDay
     FROM dbo.Hall h
     ORDER BY h.Region, h.HallName;
     """
@@ -264,12 +239,14 @@ def report_halls_with_region() -> List[Dict[str, Any]]:
 
 
 def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
+    """Lookup a single user by username."""
     sql = "SELECT * FROM dbo.Users WHERE Username = ?;"
     results = db.query(sql, (user_name,))
     return results[0] if results else None
 
 
 if __name__ == "__main__":
+    # Demo printing of queries
     print(get_user_by_user_name("Noa Hadad"))
     print("Users:"); print_table(get_users())
     print("\nEvents:"); print_table(get_events())

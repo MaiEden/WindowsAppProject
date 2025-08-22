@@ -155,10 +155,12 @@ BEGIN
 END;
 """
 
+
 def main() -> None:
     db = DbGateway()
     db.execute(SCHEMA_SQL, commit=True)
     print("Polymorphic schema created successfully.")
+
 
 if __name__ == "__main__":
     main()
