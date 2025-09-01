@@ -42,6 +42,21 @@ QLineEdit:focus {
     background: #FFFFFF;
 }
 
+/* -------- QComboBox -------- */
+QComboBox {
+    background: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+QComboBox:hover {
+    border: 1px solid #D1D5DB;
+}
+QComboBox:focus {
+    border: 1px solid #60A5FA;
+    background: #FFFFFF;
+}
+
 /* -------- Primary button (blue gradient, large radius) -------- */
 QPushButton#Primary {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,

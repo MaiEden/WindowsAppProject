@@ -2,22 +2,24 @@
 View: UI only (no business logic)
 - Presenter connects handlers to these UI events
 """
+from pathlib import Path
+
 from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QLabel, QLineEdit, QPushButton,
-    QFrame
+    QFrame, QHBoxLayout
 )
 
+BASE_DIR = Path(__file__).resolve().parents[1]   # .../UI
 
-def apply_drop_shadow(widget, radius=18, x_offset=0, y_offset=6, opacity_hint=0.12):
+def apply_drop_shadow(widget, radius=18, x_offset=0, y_offset=6):
     """Set Subtle, modern shadow on a widget."""
     from PySide6.QtWidgets import QGraphicsDropShadowEffect
     shadow = QGraphicsDropShadowEffect(widget)
     shadow.setBlurRadius(radius)
     shadow.setOffset(x_offset, y_offset)
     widget.setGraphicsEffect(shadow)
-
-
 
 class LoginView(QWidget):
     """Login screen. Styling is in styles.qss."""
@@ -31,8 +33,11 @@ class LoginView(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Login Screen")
-        self.resize(380, 520)
+
+        # size when window opens and minimum size
+        self.resize(520, 560)
         self.setMinimumSize(340, 480)
+
         self._build_ui()
         self._wire_events()
         self._center_on_screen()
@@ -49,9 +54,37 @@ class LoginView(QWidget):
 
         apply_drop_shadow(self.card)
 
+        # ----- Header: title+subtitle (left) and icon (right) -----
+        header = QHBoxLayout()
+        header.setSpacing(12)
+        header.setContentsMargins(0, 0, 0, 0)
+
+        # Left column: Title + Subtitle
+        titles_col = QVBoxLayout()
+        titles_col.setSpacing(4)
         # Title and subtitle
         self.title = QLabel("Welcome back 👋", objectName="Title")
         self.subtitle = QLabel("Please sign in to continue", objectName="Subtitle")
+        titles_col.addWidget(self.title)
+        titles_col.addWidget(self.subtitle)
+
+        # Right: icon
+        self.icon_label = QLabel()
+        icon_size = 120
+
+        # Load icon from file
+        icon_path = BASE_DIR / "style&icons" / "EventPlannerLogo.png"
+        pix = QPixmap(icon_path)
+        if not pix.isNull():
+            self.icon_label.setPixmap(
+                pix.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+            )
+
+        self.icon_label.setFixedSize(icon_size, icon_size)
+        self.icon_label.setAlignment(Qt.AlignRight | Qt.AlignVCenter)
+
+        header.addLayout(titles_col, 1)  # left side gets stretch
+        header.addWidget(self.icon_label, 0, Qt.AlignRight | Qt.AlignTop)
 
         # Input fields
         self.username = QLineEdit()
@@ -80,8 +113,7 @@ class LoginView(QWidget):
         # Change the mouse cursor to a pointing hand when hovering over the button
         self.use_demo_btn.setCursor(Qt.PointingHandCursor)
 
-        layout.addWidget(self.title)
-        layout.addWidget(self.subtitle)
+        layout.addLayout(header)
         layout.addSpacing(12)
         layout.addWidget(self.username)
         layout.addWidget(self.password)

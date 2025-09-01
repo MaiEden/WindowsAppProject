@@ -1,7 +1,7 @@
 from PySide6.QtWidgets import QApplication
-from halls_model import HallsModel
-from halls_view import HallsView
-from halls_presenter import HallsPresenter
+from UI.hallslist.halls_model import HallsModel
+from UI.hallslist.halls_view import HallsView
+from UI.hallslist.halls_presenter import HallsPresenter
 import sys
 
 if __name__ == "__main__":

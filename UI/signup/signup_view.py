@@ -1,13 +1,16 @@
 """
-View: UI only (no business logic)
+View: UI only
 - Presenter connects handlers to these UI events
 """
+from pathlib import Path
+
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
-    QFrame, QComboBox, QGraphicsDropShadowEffect, QSizePolicy
+    QFrame, QComboBox, QGraphicsDropShadowEffect
 )
+BASE_DIR = Path(__file__).resolve().parents[1]   # .../UI
 
 def apply_drop_shadow(widget, radius=18, x_offset=0, y_offset=6):
     """Apply a subtle, modern drop shadow to a widget."""
@@ -15,7 +18,6 @@ def apply_drop_shadow(widget, radius=18, x_offset=0, y_offset=6):
     shadow.setBlurRadius(radius)
     shadow.setOffset(x_offset, y_offset)
     widget.setGraphicsEffect(shadow)
-
 
 class SignUpView(QWidget):
     # View -> Presenter signals
@@ -25,8 +27,6 @@ class SignUpView(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Create an Account")
-        # Window&taskbar icon
-        self.setWindowIcon(QIcon("UI/style&icons/no_words_icon.png"))
 
         # size when window opens and minimum size
         self.resize(520, 640)
@@ -66,8 +66,11 @@ class SignUpView(QWidget):
 
         # Right: icon
         self.icon_label = QLabel()
-        icon_size = 120  # adjust to taste (e.g., 64, 80)
-        pix = QPixmap("UI/style&icons/EventPlannerLogo.png")
+        icon_size = 120
+
+        # Load icon from file
+        icon_path = BASE_DIR / "style&icons" / "EventPlannerLogo.png"
+        pix = QPixmap(icon_path)
         if not pix.isNull():
             self.icon_label.setPixmap(
                 pix.scaled(icon_size, icon_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
@@ -79,12 +82,12 @@ class SignUpView(QWidget):
         header.addWidget(self.icon_label, 0, Qt.AlignRight | Qt.AlignTop)
 
         # ----- Inputs -----
-        self.username = QLineEdit();
+        self.username = QLineEdit()
         self.username.setPlaceholderText("Username")
-        self.password = QLineEdit();
-        self.password.setPlaceholderText("Password");
+        self.password = QLineEdit()
+        self.password.setPlaceholderText("Password")
         self.password.setEchoMode(QLineEdit.Password)
-        self.phone    = QLineEdit();
+        self.phone = QLineEdit()
         self.phone.setPlaceholderText("Phone")
         self.region = QComboBox()
         self.region.addItems(["Center", "North", "South", "East", "West"])

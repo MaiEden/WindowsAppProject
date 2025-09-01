@@ -1,17 +1,15 @@
-# -*- coding: utf-8 -*-
 """
 Model: business/data logic layer
 - Provides a simple credential check
 - In real apps, replace with DB/API + hashed passwords
 """
-from typing import Optional, Dict, Any
+from UI import server_access
 
-import server.ServerAPI as ServerAPI
 class AuthModel:
 
     def verify(self, username: str, password: str) -> bool:
         """Return True if credentials are valid; otherwise False."""
-        user = ServerAPI.get_user_by_user_name(username)
+        user = server_access.request(f"/DB/users/get_user_by_name/{username}")
         if not user:
             return False
         # Assuming user is a dictionary with 'password' key

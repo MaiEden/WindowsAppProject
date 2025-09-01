@@ -33,7 +33,7 @@ if __name__ == "__main__":
     presenter = SignUpPresenter(model, view)  # noqa: F841
 
     # Load external QSS
-    qss = load_stylesheet("styles.qss")
+    qss = load_stylesheet("../../UI/style&icons/UIstyle.qss")
     if qss:
         app.setStyleSheet(qss)
 

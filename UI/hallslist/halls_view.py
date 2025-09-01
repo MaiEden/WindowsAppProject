@@ -27,7 +27,7 @@ class HallsView(QWidget):
         # ---- Header / Filters ----
         title = QLabel("Browse Halls")
         title.setAlignment(Qt.AlignCenter)
-        title.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 12px;")
+        # title.setStyleSheet("font-size: 22px; font-weight: bold; margin-bottom: 12px;")
         root.addWidget(title)
 
         self.filter_region = QComboBox()
@@ -43,7 +43,7 @@ class HallsView(QWidget):
         filter_bar.addWidget(self.search_box)
         root.addLayout(filter_bar)
 
-        # ✅ תיקון – מנטרלים את הפרמטרים שהסיגנלים שולחים
+        # Connect filter changes to signal
         self.filter_region.currentIndexChanged.connect(lambda _: self.filter_changed.emit())
         self.filter_type.currentIndexChanged.connect(lambda _: self.filter_changed.emit())
         self.search_box.textChanged.connect(lambda _: self.filter_changed.emit())
@@ -93,30 +93,59 @@ class HallsView(QWidget):
             card = self._make_card(hall)
             self.grid.addWidget(card, i // 4, i % 4)
 
+    # def _make_card(self, hall: dict):
+    #     card = QFrame()
+    #     layout = QVBoxLayout(card)
+    #     layout.setContentsMargins(4, 4, 4, 4)
+    #
+    #     # Image
+    #     img_label = QLabel()
+    #     img_label.setFixedHeight(100)
+    #     img_label.setAlignment(Qt.AlignCenter)
+    #     if hall.get("PhotoUrl"):
+    #         try:
+    #             print("Loading image from:", hall["PhotoUrl"])
+    #             r = requests.get(hall["PhotoUrl"], timeout=5)
+    #             pixmap = QPixmap()
+    #             if pixmap.loadFromData(r.content):
+    #                 img_label.setPixmap(
+    #                     pixmap.scaled(160, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+    #                 )
+    #             else:
+    #                 img_label.setText("No image")
+    #         except Exception as e:
+    #             print("Image load failed:", e)
+    #             img_label.setText("No image")
+    #     layout.addWidget(img_label)
+    #
+    #     # Name
+    #     name = QLabel(hall.get("HallName", "Unknown"))
+    #     name.setObjectName("HallName")
+    #     layout.addWidget(name)
+    #
+    #     # Type + Region
+    #     meta = QLabel(f"{hall.get('HallType','')} · {hall.get('Region','')}")
+    #     meta.setObjectName("Meta")
+    #     layout.addWidget(meta)
+    #
+    #     # Short description (first 2 lines)
+    #     desc = hall.get("Description", "")
+    #     desc_short = " ".join(desc.split()[:25]) + ("..." if len(desc.split()) > 25 else "")
+    #     desc_label = QLabel(desc_short)
+    #     desc_label.setWordWrap(True)
+    #     desc_label.setObjectName("Description")
+    #     desc_label.setFixedHeight(32)  # בערך שתי שורות
+    #     layout.addWidget(desc_label)
+    #
+    #     return card
+
     def _make_card(self, hall: dict):
         card = QFrame()
         layout = QVBoxLayout(card)
         layout.setContentsMargins(4, 4, 4, 4)
 
-        # Image
-        img_label = QLabel()
-        img_label.setFixedHeight(100)
-        img_label.setAlignment(Qt.AlignCenter)
-        if hall.get("PhotoUrl"):
-            try:
-                print("Loading image from:", hall["PhotoUrl"])
-                r = requests.get(hall["PhotoUrl"], timeout=5)
-                pixmap = QPixmap()
-                if pixmap.loadFromData(r.content):
-                    img_label.setPixmap(
-                        pixmap.scaled(160, 100, Qt.KeepAspectRatio, Qt.SmoothTransformation)
-                    )
-                else:
-                    img_label.setText("No image")
-            except Exception as e:
-                print("Image load failed:", e)
-                img_label.setText("No image")
-        layout.addWidget(img_label)
+        # *** ללא תמונות ***
+        # מסירים לחלוטין את קטע התמונה/בקשות רשת כדי לא לחסום את ה-UI
 
         # Name
         name = QLabel(hall.get("HallName", "Unknown"))
@@ -130,7 +159,8 @@ class HallsView(QWidget):
 
         # Short description (first 2 lines)
         desc = hall.get("Description", "")
-        desc_short = " ".join(desc.split()[:25]) + ("..." if len(desc.split()) > 25 else "")
+        desc_words = desc.split()
+        desc_short = " ".join(desc_words[:25]) + ("..." if len(desc_words) > 25 else "")
         desc_label = QLabel(desc_short)
         desc_label.setWordWrap(True)
         desc_label.setObjectName("Description")

@@ -120,7 +120,7 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     # טעינת ה-QSS
-    with open("style.qss", "r", encoding="utf-8") as f:
+    with open("style&icons/UIstyle.qss", "r", encoding="utf-8") as f:
         app.setStyleSheet(f.read())
 
     window = MainWindow()

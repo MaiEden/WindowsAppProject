@@ -2,7 +2,9 @@
 Model for Sign Up
 """
 
-from typing import Dict, Tuple, Any
+from typing import Tuple
+from UI import server_access
+
 
 class SignUpModel:
 
@@ -20,13 +22,15 @@ class SignUpModel:
             return False, "All fields are required."
 
         # Uniqueness
-        if u in self._users:
+        user = server_access.request(f"/DB/users/get_user_by_name/{username}")
+        if user:
             return False, "Username already exists."
 
-        # Simple rule: password length
+        # Rule: password length
         if len(ph) < 6:
             return False, "Password must be at least 6 characters."
 
-        # In real apps: hash password securely and persist to DB
-        self._users[u] = {"phone": p, "passwordHash": ph, "region": r}
+        # Insert the new user into the database
+        server_access.request(f"/DB/users/insert_user/{phone}/{username}/{password_hash}/{region}")
+        print(server_access.request(f"/DB/users/get_user_by_name/{username}"))  # Debug: print the newly created user
         return True, "Account created successfully."

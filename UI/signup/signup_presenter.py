@@ -1,18 +1,23 @@
 """
 Presenter for Sign Up screen
 """
-from signup_model import SignUpModel
-from signup_view import SignUpView
+from .signup_model import SignUpModel
+from .signup_view import SignUpView
+from PySide6.QtCore import Signal, QObject
 
-class SignUpPresenter:
+
+class SignUpPresenter(QObject):
+    # Signal to open main window after successful sign up
+    auth_ok = Signal(str)
+
     def __init__(self, model: SignUpModel, view: SignUpView):
+        super().__init__()
         self.model = model
         self.view = view
         self._connect_signals()
 
     def _connect_signals(self):
         self.view.submit_clicked.connect(self.on_submit)
-        self.view.cancel_clicked.connect(self.on_cancel)
 
     def on_submit(self):
         phone = self.view.get_phone()
@@ -23,7 +28,5 @@ class SignUpPresenter:
         ok, msg = self.model.register(phone, username, pwd_hash, region)
         print("Sign up OK" if ok else "Sign up failed")  # console feedback
         self.view.show_message(msg, status="ok" if ok else "error")
-
-    def on_cancel(self):
-        # In the integration step, this will close the sign-up view and show the login view
-        self.view.close()
+        if ok:
+            self.auth_ok.emit(username)
