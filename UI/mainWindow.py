@@ -40,7 +40,7 @@ class MainWindow(QMainWindow):
 
         btn_halls = QPushButton("🏛 Halls Event")
         btn_halls.setObjectName("sidebarButton")
-        btn_halls.clicked.connect(self.show_halls)   # ✅ עכשיו זה יעבוד
+        btn_halls.clicked.connect(self.show_halls)
 
         btn_attractions = QPushButton("🎉 Attractions List")
         btn_attractions.setObjectName("sidebarButton")
@@ -101,13 +101,29 @@ class MainWindow(QMainWindow):
         main_layout.addLayout(self.main_content)
 
     def show_halls(self):
+        """
+        Initialize and display the Halls screen.
+
+        - Creates a new instance of HallsModel (data access layer).
+        - Creates a new instance of HallsView (UI layer).
+        - Binds them together with HallsPresenter (mediator that handles logic).
+        - Replaces the current central view with the halls view.
+        """
         model = HallsModel()
         view = HallsView()
-        presenter = HallsPresenter(model, view)
+        self.halls_presenter = HallsPresenter(model, view)
         self.replace_center_view(view)
 
+
     def replace_center_view(self, new_view: QWidget):
-        # החלפה פשוטה של ה-view המרכזי
+        """
+        Replace the current central widget with a new view.
+
+        - Removes any previously added widget(s) from the main_content layout,
+          except the first (which is usually the topbar).
+        - Deletes the old widget to free resources.
+        - Inserts the new QWidget (e.g. HallsView, AttractionsView) into main_content.
+        """
         while self.main_content.count() > 1:
             item = self.main_content.takeAt(1)
             widget = item.widget()
