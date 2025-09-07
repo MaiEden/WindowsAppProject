@@ -39,7 +39,7 @@ def _fetchall_dicts(cur: pyodbc.Cursor) -> List[Dict[str, Any]]:
 def print_table(
         rows: Sequence[Dict[str, Any]],
         columns: Optional[Sequence[str]] = None,
-        max_col_width: int = 30,
+        max_col_width: int = 100,
 ) -> None:
     """
     Pretty-print a list of dictionaries as a text table.
@@ -244,9 +244,109 @@ def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
     results = db.query(sql, (user_name,))
     return results[0] if results else None
 
+def get_tables_name():
+    sql = "SELECT name FROM sys.tables"
+    return db.query(sql)
+
+def get_decotators():
+    sql = "SELECT * FROM dbo.DecorOption"
+    return db.query(sql)
+
+def get_decor_cards(
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    available: Optional[bool] = None,
+    region: Optional[str] = None,
+    order_by: str = "DecorName",     # DecorName | MinPrice | Region | Category
+    ascending: bool = True,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Return a slim list of decor items for cards, with optional filters & paging.
+
+    Filters:
+      - search: free-text over DecorName, Description, Theme
+      - category: exact match (ignore if 'All'/'')
+      - available: True/False (None to ignore)
+      - region: exact match (ignore if 'All'/'')
+    Sorting:
+      - order_by in {'DecorName','MinPrice','Region','Category'}
+      - ascending True/False
+    Paging:
+      - if limit provided, uses OFFSET/FETCH (SQL Server 2012+)
+    """
+
+    # allowlisted ordering only (to avoid SQL injection)
+    order_map = {
+        "DecorName": "d.DecorName",
+        "MinPrice":  "mp.MinPrice",
+        "Region":    "d.Region",
+        "Category":  "d.Category",
+    }
+    order_col = order_map.get(order_by, "d.DecorName")
+    order_dir = "ASC" if ascending else "DESC"
+
+    sql = f"""
+    SELECT
+        d.DecorId,
+        d.DecorName,
+        d.Category,
+        d.Theme,
+        d.Region,
+        d.Available,
+        d.PhotoUrl,
+        mp.MinPrice
+    FROM dbo.DecorOption AS d
+    OUTER APPLY (
+        SELECT MIN(v.p) AS MinPrice
+        FROM (VALUES (d.PriceSmall), (d.PriceMedium), (d.PriceLarge)) AS v(p)
+        WHERE v.p IS NOT NULL
+    ) AS mp
+    WHERE 1=1
+    """
+    params: List[Any] = []
+
+    # Filters
+    if category and category not in ("All", "All categories", ""):
+        sql += " AND d.Category = ?"
+        params.append(category)
+
+    if region and region not in ("All", "All regions", ""):
+        sql += " AND d.Region = ?"
+        params.append(region)
+
+    if available is True:
+        sql += " AND d.Available = 1"
+    elif available is False:
+        sql += " AND d.Available = 0"
+
+    if search:
+        like = f"%{search}%"
+        sql += " AND (d.DecorName LIKE ? OR d.Description LIKE ? OR d.Theme LIKE ?)"
+        params.extend([like, like, like])
+
+    # Ordering
+    sql += f" ORDER BY {order_col} {order_dir}"
+
+    # Paging
+    if limit is not None:
+        off = int(offset or 0)
+        lim = int(limit)
+        sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        params.extend([off, lim])
+
+    return db.query(sql, params)
+
+def get_services():
+    sql = "SELECT * FROM dbo.ServiceOption"
+    return db.query(sql)
 
 if __name__ == "__main__":
+    print("services:"); print_table(get_services())
     # Demo printing of queries
+    print(get_decor_cards())
+    print("decorators:"); print_table(get_decotators())
     print(get_user_by_user_name("Noa Hadad"))
     print("Users:"); print_table(get_users())
     print("\nEvents:"); print_table(get_events())
@@ -255,3 +355,4 @@ if __name__ == "__main__":
     print("\nReport: Events with services & manager"); print_table(report_events_with_services_and_manager())
     print("\nHalls:"); print_table(get_halls())
     print("\nReport: Halls with region"); print_table(report_halls_with_region())
+    print("\nTables:"); print_table(get_tables_name())

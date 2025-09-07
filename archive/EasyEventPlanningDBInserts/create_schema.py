@@ -153,6 +153,174 @@ BEGIN
         Description NVARCHAR(500) NULL
     );
 END;
+
+-- decoration options
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'DecorOption')
+BEGIN
+    CREATE TABLE dbo.DecorOption (
+        DecorId INT IDENTITY(1,1) CONSTRAINT PK_DecorOption PRIMARY KEY,
+
+        -- זיהוי ותיאור
+        DecorName NVARCHAR(200) NOT NULL,
+        Category  NVARCHAR(50)  NOT NULL,
+        Theme     NVARCHAR(100) NULL,
+        Description NVARCHAR(MAX) NULL,
+
+        -- התאמה ולוגיסטיקה
+        Indoor BIT NOT NULL CONSTRAINT DF_DecorOption_Indoor DEFAULT (1),
+        RequiresElectricity BIT NOT NULL CONSTRAINT DF_DecorOption_ReqElec DEFAULT (0),
+        SetupDurationMinutes    INT NULL,
+        TeardownDurationMinutes INT NULL,
+
+        -- תמחור לפי גודל מקום
+        PriceSmall  DECIMAL(10,2) NULL,
+        PriceMedium DECIMAL(10,2) NULL,
+        PriceLarge  DECIMAL(10,2) NULL,
+        DeliveryFee DECIMAL(10,2) NULL,
+
+        -- פרטים גאוגרפיים וספק
+        Region       NVARCHAR(50)  NULL,
+        VendorName   NVARCHAR(200) NULL,
+        ContactPhone NVARCHAR(50)  NULL,
+        ContactEmail NVARCHAR(200) NULL,
+
+        -- מדיה
+        PhotoUrl NVARCHAR(500) NULL,
+
+        -- זמינות ומדיניות
+        LeadTimeDays       INT NULL,
+        CancellationPolicy NVARCHAR(500) NULL,
+        Available BIT NOT NULL CONSTRAINT DF_DecorOption_Available DEFAULT (1),
+
+        -- אילוצים
+        CONSTRAINT CK_DecorOption_Category CHECK (Category IN (
+            N'Balloons',
+            N'Flowers',
+            N'Tableware',
+            N'Linens',
+            N'Lighting',
+            N'Backdrop',
+            N'CakeStands',
+            N'Props',
+            N'Centerpieces',
+            N'Signage'
+        )),
+        CONSTRAINT CK_DecorOption_SetupNonNegative CHECK (
+            (SetupDurationMinutes    IS NULL OR SetupDurationMinutes    >= 0) AND
+            (TeardownDurationMinutes IS NULL OR TeardownDurationMinutes >= 0)
+        ),
+        CONSTRAINT CK_DecorOption_PricesNonNegative CHECK (
+            (PriceSmall  IS NULL OR PriceSmall  >= 0) AND
+            (PriceMedium IS NULL OR PriceMedium >= 0) AND
+            (PriceLarge  IS NULL OR PriceLarge  >= 0) AND
+            (DeliveryFee IS NULL OR DeliveryFee >= 0)
+        ),
+        CONSTRAINT CK_DecorOption_AtLeastOnePrice CHECK (
+            ISNULL(PriceSmall,0) + ISNULL(PriceMedium,0) + ISNULL(PriceLarge,0) > 0
+        ),
+        CONSTRAINT CK_DecorOption_LeadTimeNonNegative CHECK (LeadTimeDays IS NULL OR LeadTimeDays >= 0),
+        CONSTRAINT CK_DecorOption_EmailFormat CHECK (
+            ContactEmail IS NULL OR ContactEmail LIKE N'%@%._%'
+        )
+    );
+
+    -- אינדקסים שימושיים
+    CREATE INDEX IX_DecorOption_Category  ON dbo.DecorOption(Category);
+    CREATE INDEX IX_DecorOption_Region    ON dbo.DecorOption(Region);
+    CREATE INDEX IX_DecorOption_Vendor    ON dbo.DecorOption(VendorName);
+    CREATE INDEX IX_DecorOption_Available ON dbo.DecorOption(Available) WHERE Available = 1;
+END;
+
+-- Activities / Services
+IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceOption')
+BEGIN
+    CREATE TABLE dbo.ServiceOption (
+        /* זיהוי ותיאור */
+        ServiceId INT IDENTITY(1,1) CONSTRAINT PK_ServiceOption PRIMARY KEY,
+        ServiceName NVARCHAR(200) NOT NULL,
+        Category NVARCHAR(50) NOT NULL,               -- Entertainment/Workshop/Show/Kids/Music/Speaker/Games
+        Subcategory NVARCHAR(100) NULL,
+        ShortDescription NVARCHAR(300) NULL,
+        Description NVARCHAR(MAX) NULL,
+        PhotoUrl NVARCHAR(500) NULL,
+
+        /* קהל ודרישות מקום */
+        MinAge INT NULL,
+        MaxAge INT NULL,
+        MinParticipants INT NULL,
+        MaxParticipants INT NULL,
+
+        IsOutdoor BIT NOT NULL CONSTRAINT DF_ServiceOption_IsOutdoor DEFAULT (0),  -- 0=Indoor, 1=Outdoor
+        NoiseLevel NVARCHAR(10) NULL,                                              -- Low/Medium/High
+        StageRequired BIT NOT NULL CONSTRAINT DF_ServiceOption_StageReq DEFAULT (0),
+        RequiresElectricity BIT NOT NULL CONSTRAINT DF_ServiceOption_ReqElec DEFAULT (0),
+
+        /* מיקום וספק */
+        Region NVARCHAR(50) NULL,
+        TravelLimitKm INT NULL,
+        TravelFeeBase DECIMAL(10,2) NULL,
+        TravelFeePerKm DECIMAL(10,2) NULL,
+        VendorName NVARCHAR(200) NULL,
+        ContactPhone NVARCHAR(50) NULL,
+        ContactEmail NVARCHAR(200) NULL,
+
+        /* תמחור וזמינות */
+        BasePrice DECIMAL(10,2) NULL,         -- מחיר בסיסי לאירוע
+        PricePerPerson DECIMAL(10,2) NULL,    -- מחיר לאדם (אופציונלי)
+        LeadTimeDays INT NULL,
+        CancellationPolicy NVARCHAR(500) NULL,
+        Available BIT NOT NULL CONSTRAINT DF_ServiceOption_Available DEFAULT (1),
+
+        /* ---------------- Constraints ---------------- */
+
+        -- Enum-ים
+        CONSTRAINT CK_ServiceOption_Category CHECK (Category IN (
+            N'Entertainment', N'Workshop', N'Show', N'Kids', N'Music', N'Speaker', N'Games'
+        )),
+        CONSTRAINT CK_ServiceOption_Noise CHECK (NoiseLevel IS NULL OR NoiseLevel IN (N'Low', N'Medium', N'High')),
+
+        -- טווחי גיל/משתתפים
+        CONSTRAINT CK_ServiceOption_AgeRange CHECK (
+            (MinAge IS NULL OR MinAge >= 0) AND
+            (MaxAge IS NULL OR MaxAge >= 0) AND
+            (MinAge IS NULL OR MaxAge IS NULL OR MinAge <= MaxAge)
+        ),
+        CONSTRAINT CK_ServiceOption_ParticipantsRange CHECK (
+            (MinParticipants IS NULL OR MinParticipants >= 0) AND
+            (MaxParticipants IS NULL OR MaxParticipants >= 0) AND
+            (MinParticipants IS NULL OR MaxParticipants IS NULL OR MinParticipants <= MaxParticipants)
+        ),
+
+        -- אי שליליות של מספרים/מחירים/מרחקים/ימים
+        CONSTRAINT CK_ServiceOption_NonNegative CHECK (
+            (TravelLimitKm    IS NULL OR TravelLimitKm    >= 0) AND
+            (TravelFeeBase    IS NULL OR TravelFeeBase    >= 0) AND
+            (TravelFeePerKm   IS NULL OR TravelFeePerKm   >= 0) AND
+            (BasePrice        IS NULL OR BasePrice        >= 0) AND
+            (PricePerPerson   IS NULL OR PricePerPerson   >= 0) AND
+            (LeadTimeDays     IS NULL OR LeadTimeDays     >= 0)
+        ),
+
+        -- לפחות מודל תמחור אחד (בסיסי או פר אדם)
+        CONSTRAINT CK_ServiceOption_AtLeastOnePrice CHECK (
+            ISNULL(BasePrice,0) + ISNULL(PricePerPerson,0) > 0
+        ),
+
+        -- אימות אימייל בסיסי
+        CONSTRAINT CK_ServiceOption_EmailFormat CHECK (
+            ContactEmail IS NULL OR ContactEmail LIKE N'%@%._%'
+        )
+    );
+
+    /* ---------------- אינדקסים ---------------- */
+    CREATE INDEX IX_Service_Category   ON dbo.ServiceOption(Category);
+    CREATE INDEX IX_Service_Region     ON dbo.ServiceOption(Region);
+    CREATE INDEX IX_Service_Available  ON dbo.ServiceOption(Available) WHERE Available = 1;
+    CREATE INDEX IX_Service_Vendor     ON dbo.ServiceOption(VendorName);
+    CREATE INDEX IX_Service_BasePrice  ON dbo.ServiceOption(BasePrice);
+    CREATE INDEX IX_Service_PricePerPs ON dbo.ServiceOption(PricePerPerson);
+END;
+
 """
 
 

@@ -32,3 +32,8 @@ def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
 def insert_user(phone: str, username: str, password_hash: str, region: str) -> int:
     """הוספת משתמש חדש"""
     return insert_api.add_user(phone, username, password_hash, region)
+
+@app.get("/DB/decors/list")
+async def get_halls():
+    """החזרת כל האולמות (דוגמה)"""
+    return read_api.get_decor_cards()

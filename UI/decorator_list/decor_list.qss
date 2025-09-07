@@ -23,11 +23,15 @@ QPushButton:pressed { background: #1d4ed8; }
 QFrame#Card {
   background: #ffffff;
   border-radius: 16px;
+  /* subtle starting elevation */
+}
+QFrame#Card:hover {
+  margin-top: -2px;           /* lift */
 }
 
 /* Image header */
 QLabel#CardImage {
-  background: #eef2ff;        /* soft header bg until real images load */
+  background: #eef2ff;        /* soft header bg until you load real images */
   border-top-left-radius: 16px;
   border-top-right-radius: 16px;
 }
@@ -48,5 +52,5 @@ QLabel#Pill {
 QLabel#Pill[ok="true"]  { background: #dcfce7; color: #065f46; }
 QLabel#Pill[ok="false"] { background: #fee2e2; color: #991b1b; }
 
-/* Scroll area */
+/* Scroll area (so the grid looks airy) */
 QScrollArea { border: none; background: transparent; }
