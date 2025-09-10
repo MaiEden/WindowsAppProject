@@ -342,6 +342,96 @@ def get_services():
     sql = "SELECT * FROM dbo.ServiceOption"
     return db.query(sql)
 
+def get_service_cards(
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    available: Optional[bool] = None,
+    region: Optional[str] = None,
+    order_by: str = "ServiceName",   # ServiceName | BasePrice | Region | Category
+    ascending: bool = True,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Return a slim list of services for cards, with optional filters & paging.
+
+    Filters:
+      - search: free-text over ServiceName, Description, ShortDescription, Subcategory
+      - category: exact match (ignore if 'All'/'')
+      - available: True/False (None to ignore)
+      - region: exact match (ignore if 'All'/'')
+    Sorting:
+      - order_by in {'ServiceName','BasePrice','Region','Category'}
+      - ascending True/False
+    Paging:
+      - if limit provided, uses OFFSET/FETCH (SQL Server 2012+)
+    """
+    # allowlisted ordering only (to avoid SQL injection)
+    order_map = {
+        "ServiceName": "s.ServiceName",
+        "BasePrice":   "s.BasePrice",
+        "Region":      "s.Region",
+        "Category":    "s.Category",
+    }
+    order_col = order_map.get(order_by, "s.ServiceName")
+    order_dir = "ASC" if ascending else "DESC"
+
+    sql = f"""
+    SELECT
+        s.ServiceId,
+        s.ServiceName,
+        s.Category,
+        s.Subcategory,
+        s.ShortDescription,
+        s.Description,
+        s.PhotoUrl,
+        s.Region,
+        s.Available,
+        s.BasePrice,
+        s.PricePerPerson
+    FROM dbo.ServiceOption AS s
+    WHERE 1=1
+    """
+    params: List[Any] = []
+
+    # Filters
+    if category and category not in ("All", "All categories", ""):
+        sql += " AND s.Category = ?"
+        params.append(category)
+
+    if region and region not in ("All", "All regions", ""):
+        sql += " AND s.Region = ?"
+        params.append(region)
+
+    if available is True:
+        sql += " AND s.Available = 1"
+    elif available is False:
+        sql += " AND s.Available = 0"
+
+    if search:
+        like = f"%{search}%"
+        sql += """
+        AND (
+            s.ServiceName LIKE ?
+            OR s.Description LIKE ?
+            OR s.ShortDescription LIKE ?
+            OR s.Subcategory LIKE ?
+        )
+        """
+        params.extend([like, like, like, like])
+
+    # Ordering
+    sql += f" ORDER BY {order_col} {order_dir}"
+
+    # Paging
+    if limit is not None:
+        off = int(offset or 0)
+        lim = int(limit)
+        sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        params.extend([off, lim])
+
+    return db.query(sql, params)
+
 if __name__ == "__main__":
     print("services:"); print_table(get_services())
     # Demo printing of queries

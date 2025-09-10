@@ -43,7 +43,7 @@ def seed() -> None:
          "25 to 45 minutes, includes a professional sound check, and can be adapted for corporate events, "
          "birthdays, or community gatherings. We arrive early, coordinate with the MC/DJ, and ensure the flow "
          "between segments stays tight and engaging. Family‑friendly upon request.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/standup.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Stand-upComedyNight.jpg",
          14, None, 20, 300, 0, "High", 1, 1,
          "Center", 120, 150.00, 4.00,
          "LaughLine", "+972-52-7000101", "book@laughline.co.il",
@@ -55,7 +55,7 @@ def seed() -> None:
          "and visual surprises. Perfect ice‑breaker during reception or between courses. No stage required; "
          "minimal setup and zero technical dependencies. Can operate in Hebrew or English and adapts to kids "
          "or adult audiences. Highly modular: book 60–120 minutes of continuous walkaround sets.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/closeup-magic.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Close-upMagicWalkaround.jpg",
          6, None, 15, 250, 0, "Medium", 0, 0,
          "Jerusalem", 80, 120.00, 3.00,
          "Mirage Magic", "+972-53-7000102", "hello@miragemagic.co.il",
@@ -67,7 +67,7 @@ def seed() -> None:
          "The show is set to dynamic music and includes a short interactive segment with volunteers. "
          "We bring all safety equipment and a trained assistant. For venues that prohibit flame, we "
          "offer a pure LED edition with synchronized patterns and programmable visuals.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/fire-light-show.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Fire&LightJugglingShow.jpg",
          8, None, 20, 400, 1, "High", 0, 0,
          "South", 200, 220.00, 5.00,
          "Orbit Arts", "+972-54-7000103", "team@orbitarts.co.il",
@@ -79,7 +79,7 @@ def seed() -> None:
          "Average pace is 12–15 drawings per hour. We provide protective sleeves so guests can carry the art "
          "safely. Optionally brand the sheets with your logo or celebration date. Great for receptions, "
          "corporate family days, bar/bat‑mitzvahs and school fairs.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/caricature.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/LiveCaricatureStation.jpg",
          5, None, 10, 250, 0, "Low", 0, 0,
          "Sharon", 90, 90.00, 2.50,
          "Sketch&Smile", "+972-58-7000104", "draw@sketchnsmile.co.il",
@@ -91,7 +91,7 @@ def seed() -> None:
          "wireless headphones and can switch channels between live DJ sets or curated playlists. "
          "Great for mixed audiences and venues with noise restrictions. We handle full deployment, "
          "charging logistics, sanitization, and on‑site technical support throughout the party.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/silent-disco.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/SilentDisco%E2%80%93MultiChannel.jpg",
          10, None, 30, 500, 1, "Medium", 0, 1,
          "Haifa", 140, 180.00, 3.50,
          "WaveHead", "+972-52-7000105", "book@wavehead.co.il",
@@ -103,7 +103,7 @@ def seed() -> None:
          "event‑custom rounds (company history, family trivia). We provide wireless buzzers, projector, "
          "and score tracking. The format keeps all ages engaged through short, lively segments and finale "
          "rounds for the highest‑scoring teams.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/quiz-show.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/InteractiveQuizShow.jpg",
          8, None, 20, 200, 0, "Medium", 1, 1,
          "Center", 120, 140.00, 3.00,
          "BrightBuzz", "+972-53-7000106", "host@brightbuzz.co.il",
@@ -115,7 +115,7 @@ def seed() -> None:
          "anywhere without room builds. Facilitators guide the game, escalating hints on a timed track. "
          "Perfect for team‑building offsites, youth groups, and school activities. Difficulty is adjustable "
          "and can support multiple groups in parallel.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/escape-boxes.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/EscapeBoxes%E2%80%93Mobile%20Puzzles.jpg",
          9, None, 12, 120, 0, "Medium", 0, 0,
          "Galilee", 160, 110.00, 2.50,
          "CipherCraft", "+972-57-7000107", "team@ciphercraft.co.il",
@@ -126,7 +126,7 @@ def seed() -> None:
          "Two to four multi‑game cabinets with authentic controls, great for all ages. "
          "We supply screens, stands, and cable management for a clean look. "
          "Attracts constant foot traffic during receptions and fairs. Requires a nearby power outlet.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/arcade.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/RetroArcadeCorner.jpg",
          6, None, 10, 150, 0, "Medium", 0, 1,
          "North", 180, 130.00, 3.00,
          "8Bit Events", "+972-58-7000108", "play@8bitevents.co.il",
@@ -137,7 +137,7 @@ def seed() -> None:
          "After a 10‑minute demo show, kids rotate through stations (spinning plates, juggling scarves, "
          "flower sticks, balance line) supervised by two facilitators. Safe gear and soft surfaces are provided. "
          "Wrap‑up showcase lets participants present a newly learned trick to applause.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/circus-kids.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/CircusMini%E2%80%91Workshop&Show.jpg",
          5, 12, 15, 120, 1, "Medium", 0, 0,
          "South", 150, 90.00, 2.00,
          "TinyCircus", "+972-55-7000109", "fun@tinycircus.co.il",
@@ -148,7 +148,7 @@ def seed() -> None:
          "An enchanting performance that uses specialty bubble wands and safe, professional solution "
          "to create huge bubbles, bubble tunnels, and reflective shapes. Includes a photo moment inside "
          "a giant bubble for the birthday star or guest of honor. Works best indoors without heavy airflow.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/bubbles.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/BubbleArtShow.jpg",
          3, 11, 15, 200, 0, "Low", 1, 0,
          "Center", 100, 80.00, 2.00,
          "BubbleJoy", "+972-52-7000110", "hello@bubblejoy.co.il",
@@ -160,7 +160,7 @@ def seed() -> None:
          "Participants learn to temper chocolate on marble, roll ganache truffles, and decorate with "
          "toppings. Every guest takes home a personal box. The session includes all ingredients, "
          "work surfaces, aprons, and food‑grade gloves. Adapts well to families and corporate groups.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/chocolate-workshop.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/ChocolateTruffleWorkshop.jpg",
          7, None, 8, 60, 0, "Low", 0, 0,
          "Jerusalem", 70, 70.00, 1.80,
          "CacaoLab", "+972-53-7000111", "orders@cacaolab.co.il",
@@ -171,7 +171,7 @@ def seed() -> None:
          "A guided creative break: build palettes, practice brush control, and compose a framed quote "
          "to take home. We bring all materials, cover tables, and set up drying racks. "
          "Suitable for beginners—no prior experience required.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/watercolor.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Watercolor&Lettering.jpg",
          10, None, 8, 50, 0, "Low", 0, 0,
          "Sharon", 60, 60.00, 1.50,
          "Ink&Flow", "+972-58-7000112", "studio@inkflow.co.il",
@@ -182,7 +182,7 @@ def seed() -> None:
          "A practical culinary session that covers rice prep, knife safety, and rolling techniques. "
          "Guests rotate stations and plate their own tasting set. Vegetarian options available on request. "
          "Venue must allow food handling; we bring portable coolers.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/sushi-class.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/SushiRollingClass.jpg",
          12, None, 10, 40, 0, "Low", 0, 1,
          "Center", 80, 80.00, 2.00,
          "Roll&Joy", "+972-52-7000113", "chef@rollandjoy.co.il",
@@ -193,7 +193,7 @@ def seed() -> None:
          "We guide participants through substrate layers, plant placement, and long‑term care tips. "
          "Each attendee completes a personal terrarium to take home. Great for calm, mindful team sessions "
          "or boutique events.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/terrarium.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/DIYTerrariumWorkshop.jpg",
          9, None, 8, 50, 0, "Low", 0, 0,
          "Haifa", 90, 65.00, 1.50,
          "GreenDome", "+972-54-7000114", "hello@greendome.co.il",
@@ -204,7 +204,7 @@ def seed() -> None:
          "Dozens of djembe and percussion instruments transform the group into an instant band. "
          "Our facilitators lead dynamic rhythms, call‑and‑response, and a celebratory finale. "
          "Ideal as an offsite opener or family‑day anchor activity.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/drum-circle.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/DrumCircleEnergizer.jpg",
          8, None, 15, 300, 1, "High", 0, 0,
          "North", 160, 120.00, 2.50,
          "PulseBeat", "+972-55-7000115", "beat@pulsebeat.co.il",
@@ -216,7 +216,7 @@ def seed() -> None:
          "Pre‑event consultation to map your taste and timeline, live reading of the crowd, "
          "and professional MCing for key moments. Includes pro controller, basic lighting, and backup gear. "
          "Add‑ons: ceremony audio, dance‑floor lighting, or silent disco integration.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/dj.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/DJ%E2%80%93OpenFormatParty.jpg",
          14, None, 40, 800, 0, "High", 0, 1,
          "Center", 180, 200.00, 3.50,
          "MixCraft", "+972-53-7000116", "mix@mixcraft.co.il",
@@ -227,7 +227,7 @@ def seed() -> None:
          "Elegant mix of classical themes, pop ballads, and Israeli favorites arranged for guitar and violin. "
          "We handle tasteful background amplification so conversation remains comfortable. "
          "Can perform indoors or on shaded patios.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/acoustic-duo.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/AcousticDuo(Guitar&Violin).jpg",
          10, None, 20, 300, 1, "Low", 0, 1,
          "Jerusalem", 100, 120.00, 2.00,
          "String&Pick", "+972-58-7000117", "duo@stringpick.co.il",
@@ -238,7 +238,7 @@ def seed() -> None:
          "Clarinet, accordion, and percussion create a joyful, uplifting sound. "
          "We can roam through the crowd or play on a small platform. "
          "Sets are modular and can bookend ceremonies or accompany dance segments.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/klezmer.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/KlezmerTrio.jpg",
          8, None, 15, 300, 1, "Medium", 0, 0,
          "North", 140, 110.00, 2.00,
          "NigunBand", "+972-55-7000118", "book@nigunband.co.il",
@@ -250,7 +250,7 @@ def seed() -> None:
          "A seasoned speaker shares field‑tested tools for navigating uncertainty, building habits, "
          "and keeping teams connected to purpose. The talk blends case studies, humor, and a short "
          "Q&A segment. Slides and handouts provided on request.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/keynote.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/MotivationalKeynote%E2%80%93ResilienceatWork.jpg",
          16, None, 20, 600, 0, "Medium", 1, 1,
          "Center", 220, 180.00, 3.00,
          "NorthStar Talks", "+972-52-7000119", "talks@northstar.co.il",
@@ -261,7 +261,7 @@ def seed() -> None:
          "Demonstrates real‑world use cases (summaries, drafting, analysis) without heavy jargon. "
          "Interactive segment invites participants to challenge a live demo. Tailored examples for "
          "marketing, HR, operations, and education audiences are available.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/ai-talk.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/TechTalk%E2%80%93AIforNon%E2%80%91Engineers.jpg",
          15, None, 20, 500, 0, "Low", 1, 1,
          "Haifa", 200, 160.00, 2.80,
          "BrightBridge", "+972-54-7000120", "ai@brightbridge.co.il",
@@ -273,7 +273,7 @@ def seed() -> None:
          "We present colorful reactions, air pressure tricks, and optical illusions that spark curiosity. "
          "All materials are classroom‑safe and leave no residue on venue floors. "
          "Optional add‑on: take‑home mini experiment kits.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/science-show.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/ScienceShow%E2%80%93SparkLab.jpg",
          6, 12, 20, 200, 0, "Medium", 1, 1,
          "Center", 120, 90.00, 2.00,
          "SparkLab", "+972-52-7000121", "lab@sparklab.co.il",
@@ -284,7 +284,7 @@ def seed() -> None:
          "A portable stage, rich backdrops, and original music create a cozy theater experience. "
          "We include a short meet‑the‑puppets at the end for photos and smiles. "
          "Perfect for preschools, libraries, and community centers.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/puppets.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/PuppetTheaterMini%E2%80%91Musical.jpg",
          3, 9, 15, 150, 0, "Low", 1, 1,
          "Jerusalem", 90, 70.00, 1.50,
          "LittleCurtain", "+972-58-7000122", "show@littlecurtain.co.il",
@@ -295,7 +295,7 @@ def seed() -> None:
          "We assemble a mini‑park of age‑appropriate inflatables, soft obstacles, and relay games. "
          "Our trained crew supervises rotations and ensures safe queueing. Requires outdoor space and "
          "nearby electricity for blowers.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/inflatables.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/InflatablePlayPark.jpg",
          4, 13, 30, 500, 1, "High", 0, 1,
          "South", 220, 220.00, 4.00,
          "JumpZone", "+972-53-7000123", "park@jumpzone.co.il",
@@ -307,7 +307,7 @@ def seed() -> None:
          "Casual, free‑play zone that encourages mingling between generations. "
          "We supply mats, shade posts (if needed), and signage for quick rules. "
          "Works well as a background attraction throughout the event.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/giant-games.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/GiantBoardGamesLawn.jpg",
          5, None, 15, 300, 1, "Low", 0, 0,
          "Sharon", 120, 110.00, 2.00,
          "PlayYard", "+972-57-7000124", "hello@playyard.co.il",
@@ -318,7 +318,7 @@ def seed() -> None:
          "We deploy a modular field with bunkers, team bases, and safe infrared taggers. "
          "Great for youth groups and company fun days. Operates day or night with LED identifiers. "
          "Requires open area (indoor gym or outdoor field).",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/laser-tag.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/LaserTagArena%E2%80%93Mobile.jpg",
          9, None, 12, 200, 1, "High", 0, 0,
          "Galilee", 200, 160.00, 3.00,
          "PhotonPlay", "+972-55-7000125", "ops@photonplay.co.il",
@@ -328,7 +328,7 @@ def seed() -> None:
          "Foam‑tip archery with safety nets and instructor guidance.",
          "Guests learn stance, draw, and aim with low‑poundage bows. We erect safety netting and lane markers "
          "and operate in controlled rounds. Weather permitting, can be hosted on lawns or large halls.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/archery.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/MobileArcheryRange.jpg",
          10, None, 10, 150, 1, "Medium", 0, 0,
          "North", 160, 140.00, 2.50,
          "AimTrue", "+972-58-7000126", "coach@aimtrue.co.il",
@@ -340,7 +340,7 @@ def seed() -> None:
          "We bring studio‑grade lighting, themed props, and custom overlays. "
          "Guests receive high‑quality prints on the spot and a link to the full gallery afterward. "
          "Fits into small corners and keeps lines moving quickly with an attendant.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/photo-booth.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/PhotoBooth%E2%80%93DSLRStudio.jpg",
          8, None, 20, 400, 0, "Medium", 0, 1,
          "Center", 120, 150.00, 3.00,
          "SnapBox", "+972-52-7000127", "studio@snapbox.co.il",
@@ -351,7 +351,7 @@ def seed() -> None:
          "We create an authentic atmosphere with décor, traditional garments for the family, and rhythmic music. "
          "The lead hostess explains each step and invites guests to participate respectfully. "
          "All cosmetics are skin‑safe and removable.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/henna.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/HennaTraditionExperience.jpg",
          12, None, 30, 400, 0, "Medium", 1, 1,
          "South", 200, 180.00, 3.50,
          "Heritage Events", "+972-54-7000128", "hello@heritageevents.co.il",
@@ -361,7 +361,7 @@ def seed() -> None:
          "Colorful stilt walkers that greet and entertain during entrances.",
          "Two to three performers in impressive costumes roam and pose for photos, creating a festive "
          "arrival experience. Ideal for plazas, promenades, and wide hallways. No stage needed.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/stilt-walkers.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/StiltWalkersParade.jpg",
          6, None, 20, 600, 1, "High", 0, 0,
          "Haifa", 160, 140.00, 2.80,
          "SkyHigh Crew", "+972-55-7000129", "book@skyhighcrew.co.il",
@@ -371,7 +371,7 @@ def seed() -> None:
          "Creative balloon sculptures customized to guest requests.",
          "Fast, friendly balloon art that delights kids and adults alike—flowers, swords, hats, animals, "
          "and themed creations. Great roaming add‑on for receptions or queue areas.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/balloon-artist.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/BalloonTwistingArtist.jpg",
          3, None, 10, 250, 0, "Low", 0, 0,
          "Jerusalem", 80, 70.00, 1.50,
          "Twist&Joy", "+972-53-7000130", "twist@joy.co.il",
@@ -382,7 +382,7 @@ def seed() -> None:
          "We bring illustrated design menus for fast choice and use professional, dermatologically tested "
          "paints. Efficient queue management keeps kids happy and lines short. "
          "Includes cleaning wipes and after‑care tips for parents.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/face-paint.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/FacePaintingCorner.jpg",
          3, 11, 10, 220, 0, "Low", 0, 0,
          "Sharon", 90, 70.00, 1.40,
          "ColorPop", "+972-58-7000131", "paint@colorpop.co.il",
@@ -393,7 +393,7 @@ def seed() -> None:
          "Warm vocal set with acoustic guitar across pop, folk, and Israeli classics.",
          "Perfect for receptions and intimate dinners. We bring compact amplification and "
          "a tasteful repertoire that can include your requests with advance notice.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/singer-guitar.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Singer%E2%80%91GuitaristSolo.jpg",
          12, None, 20, 250, 0, "Low", 0, 1,
          "Center", 100, 100.00, 2.00,
          "SongLeaf", "+972-52-7000132", "sing@songleaf.co.il",
@@ -403,7 +403,7 @@ def seed() -> None:
          "Classical string quartet for ceremonies and upscale receptions.",
          "Two violins, viola, and cello performing elegant arrangements—from Bach to movie themes. "
          "Ideal for aisles, chuppahs, and cocktail hours. Professional black‑tie presentation.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/quartet.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/StringQuartet.jpg",
          14, None, 20, 400, 0, "Low", 0, 1,
          "Jerusalem", 120, 160.00, 3.00,
          "Arioso Ensemble", "+972-58-7000133", "hello@arioso.co.il",
@@ -413,7 +413,7 @@ def seed() -> None:
          "Live percussion overlay that supercharges the dance floor.",
          "Two percussionists join the DJ with congas, bongos, and shakers, building live rhythms "
          "that ride the beat and lift energy. Works brilliantly for Latin and Mediterranean sets.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/percussion.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/PercussionAfter%E2%80%91PartyCrew.jpg",
          14, None, 40, 800, 0, "High", 0, 0,
          "South", 200, 150.00, 3.20,
          "GrooveFuel", "+972-54-7000134", "groove@groovefuel.co.il",
@@ -424,7 +424,7 @@ def seed() -> None:
          "Hands‑on espresso and milk‑art session led by a pro barista.",
          "We cover grinder calibration, espresso extraction, milk steaming, and simple latte‑art patterns. "
          "Mobile coffee stations keep groups rotating smoothly. Caffeine‑happy smiles guaranteed.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/barista.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/BaristaSkillsCrashCourse.jpg",
          14, None, 8, 40, 0, "Low", 0, 1,
          "Center", 100, 90.00, 2.20,
          "CremaLab", "+972-53-7000135", "coffee@cremalab.co.il",
@@ -434,7 +434,7 @@ def seed() -> None:
          "Craft soy‑wax candles with personalized scents and labels.",
          "Participants choose fragrance families, wick sizes, and vessel styles, "
          "then pour and label their own candle. We bring all supplies and protective covers.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/candles.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/CandleMaking&ScentBlending.jpg",
          9, None, 8, 50, 0, "Low", 0, 0,
          "Haifa", 80, 70.00, 1.60,
          "AromaCraft", "+972-58-7000136", "craft@aromacraft.co.il",
@@ -445,7 +445,7 @@ def seed() -> None:
          "Explore local street‑art stories, techniques, and artist signatures in a lively urban route. "
          "Wrap up with a supervised stencil activity on takeaway boards. "
          "Great photo opportunities throughout.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/graffiti.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Graffiti&Street%E2%80%91ArtTour.jpg",
          12, None, 10, 60, 1, "Medium", 0, 0,
          "Center", 60, 60.00, 1.50,
          "UrbanCanvas", "+972-52-7000137", "tour@urbancanvas.co.il",
@@ -456,7 +456,7 @@ def seed() -> None:
          "Clear, friendly session on budgeting, saving, and long‑term planning.",
          "A pragmatic talk that demystifies personal finance basics with realistic examples and "
          "actionable checklists. Optional Q&A and worksheet downloads afterward.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/finance-talk.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/FinancialWellness101.jpg",
          16, None, 20, 400, 0, "Low", 1, 0,
          "Sharon", 120, 110.00, 2.50,
          "BrightLedger", "+972-53-7000138", "money@brightledger.co.il",
@@ -467,7 +467,7 @@ def seed() -> None:
          "STEM‑based Lego challenges with ramps, gears, and mini‑motors.",
          "Kids collaborate in teams to build and iterate on fun engineering tasks. "
          "Facilitators coach problem‑solving and creativity, ending with short demos.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/lego.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/LegoEngineeringLab.jpg",
          6, 12, 12, 120, 0, "Low", 0, 0,
          "Center", 80, 70.00, 1.50,
          "BrickWorks", "+972-58-7000139", "lab@brickworks.co.il",
@@ -477,7 +477,7 @@ def seed() -> None:
          "Cozy story time with live illustration on a big pad.",
          "Interactive reading with funny voices, creative prompts, and quick drawings that bring characters to life. "
          "Kids vote on twists and endings to co‑create the tale.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/story-time.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Storytelling&IllustrationHour.jpg",
          3, 9, 10, 100, 0, "Low", 0, 0,
          "Jerusalem", 60, 60.00, 1.20,
          "PaperMoon", "+972-53-7000140", "read@papermoon.co.il",
@@ -489,7 +489,7 @@ def seed() -> None:
          "A polished mentalism show featuring predictions, drawing duplications, and thought reveals. "
          "Requires a quiet audience and stage lighting for best impact. Can integrate the guest of honor "
          "in a respectful, memorable centerpiece routine.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/mentalist.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/MindReadingStageAct.jpg",
          12, None, 30, 600, 1, "Medium", 1, 1,
          "Center", 180, 180.00, 3.20,
          "MindScope", "+972-52-7000141", "show@mindscope.co.il",
@@ -499,7 +499,7 @@ def seed() -> None:
          "High‑impact LED dance with programmable costumes and visuals.",
          "A troupe of four dancers performs synchronized choreography using custom LED suits that paint "
          "patterns in the air. Ideal for grand reveals and product launches. Fits most stages or open plazas.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/led-dance.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/LEDDanceTroupe.jpg",
          8, None, 40, 1000, 1, "High", 1, 1,
          "Haifa", 220, 220.00, 4.00,
          "NeonMotion", "+972-55-7000142", "dance@neonmotion.co.il",
@@ -509,7 +509,7 @@ def seed() -> None:
          "Swing and bossa‑nova classics with a classy lounge vibe.",
          "Upright bass, guitar, and vocals deliver smooth standards and tasteful instrumentals. "
          "Volume is carefully controlled to allow easy conversation during dinners or cocktails.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/jazz-trio.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/VintageJazzTrio.jpg",
          14, None, 20, 300, 0, "Low", 0, 1,
          "Sharon", 140, 130.00, 2.50,
          "VelvetRoom", "+972-53-7000143", "jazz@velvetroom.co.il",
@@ -519,7 +519,7 @@ def seed() -> None:
          "Folkloric dabke steps taught in a joyful circle format.",
          "A dance leader breaks down steps and patterns so all ages can join. "
          "We start slow and end with a lively chain through the crowd—great for weddings and community nights.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/dabke.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/MediterraneanDabkeWorkshop.jpg",
          8, None, 20, 300, 1, "Medium", 0, 0,
          "North", 160, 120.00, 2.50,
          "StepTogether", "+972-58-7000144", "dance@steptogether.co.il",
@@ -529,27 +529,17 @@ def seed() -> None:
          "Large‑screen outdoor cinema with projector, screen, and FM audio option.",
          "We build a cozy outdoor theater with blankets and low chairs on request. "
          "Includes licensing guidance for public screenings and weather contingency tips.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/outdoor-cinema.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/OutdoorCinemaNight.jpg",
          8, None, 20, 500, 1, "Medium", 0, 1,
          "South", 220, 180.00, 3.50,
          "SkyFrame", "+972-54-7000145", "cinema@skyframe.co.il",
          2900.00, 12.00, 7, "Free cancellation up to 7 days before event.", 1),
 
-        ("Mindful Yoga Session", "Workshop", "Wellness",
-         "Guided yoga flow suitable for mixed‑level groups with calming music.",
-         "Focus on breath, mobility, and gentle strength. We bring mats upon request and can run the session "
-         "on lawns, rooftops, or quiet halls. Optional meditation cool‑down at the end.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/yoga.jpg",
-         12, None, 8, 80, 1, "Low", 0, 0,
-         "Galilee", 120, 90.00, 1.80,
-         "CalmSquare", "+972-52-7000146", "yoga@calmsquare.co.il",
-         900.00, 18.00, 3, "Free cancellation up to 3 days before event.", 1),
-
         ("Improv Theater Games", "Workshop", "Improv",
          "Fast, funny improv exercises that unlock creativity and team trust.",
          "We facilitate high‑energy rounds that emphasize listening, acceptance, and playful risk‑taking. "
          "No acting experience needed—just willingness to laugh and participate.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/improv.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/ImprovTheaterGames.jpg",
          14, None, 12, 150, 0, "Medium", 1, 1,
          "Center", 100, 100.00, 2.00,
          "YesAnd Studio", "+972-58-7000147", "play@yesand.co.il",
@@ -559,7 +549,7 @@ def seed() -> None:
          "Captivating folktales with live musical interludes.",
          "A professional storyteller weaves humorous and heartfelt tales drawn from local and global traditions. "
          "Ideal for community nights and intimate cultural events. Small amplification provided if needed.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/storyteller.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Storyteller%E2%80%93FolktalesEvening.jpg",
          12, None, 20, 300, 0, "Low", 1, 1,
          "Jerusalem", 100, 90.00, 2.00,
          "Tale&Tune", "+972-53-7000148", "tales@taletune.co.il",
@@ -569,37 +559,17 @@ def seed() -> None:
          "Neon glow body‑safe paints with blacklights and DJ playlist integration.",
          "We set up UV lighting zones and provide quick, festival‑style designs for guests. "
          "Creates striking photos and an instant party vibe. Works best in darker spaces.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/uv-party.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/UVFace%E2%80%91PaintGlowParty.jpg",
          10, None, 20, 500, 0, "High", 0, 1,
          "Haifa", 180, 150.00, 3.00,
          "GlowBox", "+972-55-7000149", "uv@glowbox.co.il",
          2100.00, 12.00, 6, "Free cancellation up to 6 days before event.", 1),
 
-        ("Guided Hike & Orienteering", "Games", "OutdoorNav",
-         "Scenic hike with beginner orienteering and map challenges.",
-         "Certified guide leads a route suitable for mixed fitness levels, with short navigation puzzles at "
-         "stops. We provide maps, compasses, and water refill points. Weather‑dependent contingency included.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/hike.jpg",
-         12, None, 10, 60, 1, "Medium", 0, 0,
-         "North", 240, 220.00, 4.00,
-         "TrailWays", "+972-58-7000150", "hike@trailways.co.il",
-         1600.00, 16.00, 7, "Free cancellation up to 7 days before event.", 1),
-
-        ("Civic Quiz: Israel & World", "Games", "Civics",
-         "Educational, upbeat civics quiz game for schools and youth groups.",
-         "Teams buzz in to answer questions on history, geography, and current affairs; "
-         "difficulty scales by grade. Includes printable certificates for winners.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/civics-quiz.jpg",
-         10, None, 20, 200, 0, "Medium", 1, 1,
-         "Center", 160, 120.00, 2.20,
-         "CiviPlay", "+972-52-7000151", "quiz@civiplay.co.il",
-         1400.00, 10.00, 5, "Free cancellation up to 5 days before event.", 1),
-
-        ("Social Photo Challenge", "Games", "Scavenger",
+       ("Social Photo Challenge", "Games", "Scavenger",
          "Mobile scavenger hunt with creative photo missions and leaderboard.",
          "Teams complete location‑based prompts and upload photos to a live feed. "
          "Facilitators moderate challenges and count bonus points for creativity and teamwork.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/photo-hunt.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/SocialPhotoChallenge.jpg",
          12, None, 12, 400, 1, "Medium", 0, 1,
          "Center", 180, 140.00, 2.80,
          "SnapQuest", "+972-55-7000152", "ops@snapquest.co.il",
@@ -609,7 +579,7 @@ def seed() -> None:
          "Guided relaxation and breath techniques for calm focus.",
          "A quiet, science‑informed session that introduces breathing patterns and micro‑breaks "
          "for daily resilience. Can be hosted in offices, schools, or outdoor gardens.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/meditation.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Meditation&Breathwork.jpg",
          12, None, 8, 120, 0, "Low", 0, 0,
          "Sharon", 100, 80.00, 1.50,
          "StillPoint", "+972-53-7000153", "calm@stillpoint.co.il",
@@ -619,7 +589,7 @@ def seed() -> None:
          "Hosted storytelling night where guests share 5‑minute true tales.",
          "We provide a friendly host, stage timer, and light coaching to keep the stories crisp and "
          "uplifting. Optional judges and small prizes for a playful competitive twist.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/open-mic.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/StorySlam%E2%80%93OpenMic.jpg",
          16, None, 30, 300, 0, "Medium", 1, 1,
          "Jerusalem", 120, 110.00, 2.20,
          "Mic&Light", "+972-58-7000154", "host@miclight.co.il",
@@ -629,27 +599,17 @@ def seed() -> None:
          "Lighthearted field competitions with relays, puzzles, and teamwork challenges.",
          "We set up stations around your venue—sack races, human knots, logic towers—and rotate teams "
          "through timed heats. Emphasis on collaboration and fun over athletic ability.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/team-olympics.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/OutdoorTeamOlympics.jpg",
          10, None, 20, 400, 1, "Medium", 0, 0,
          "South", 240, 220.00, 4.00,
          "PlayWorks", "+972-55-7000155", "field@playworks.co.il",
          2600.00, 12.00, 6, "Free cancellation up to 6 days before event.", 1),
 
-        ("Ballroom Dance Taster", "Workshop", "Dance",
-         "Beginner‑friendly ballroom intro: waltz, foxtrot, and a Latin teaser.",
-         "A patient instructor gets couples moving comfortably in under an hour. "
-         "We keep it elegant and accessible—no prior experience needed.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/ballroom.jpg",
-         14, None, 10, 120, 0, "Low", 0, 1,
-         "Center", 100, 100.00, 2.00,
-         "Step&Shine", "+972-52-7000156", "dance@stepshine.co.il",
-         1200.00, 18.00, 4, "Free cancellation up to 4 days before event.", 1),
-
         ("Poetry & Music Duo", "Speaker", "Poetry",
          "Spoken‑word poetry accompanied by live guitar for atmospheric evenings.",
          "Original texts and classic pieces performed in a warm, intimate style. "
          "Can anchor a cultural night or serve as an interlude between program segments.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/poetry.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Poetry&MusicDuo.jpg",
          14, None, 20, 250, 0, "Low", 1, 1,
          "Galilee", 120, 90.00, 1.80,
          "Lines&Chords", "+972-58-7000157", "poetry@lineschords.co.il",
@@ -659,27 +619,17 @@ def seed() -> None:
          "Short, festive night run with glow sticks and upbeat playlist.",
          "We mark a 1–3 km loop with safe lighting and marshals, run warm‑up, and cheer stations. "
          "Family‑friendly pace; medals and photos at the finish line.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/night-run.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/GlowStickNightRun(Fun%E2%80%91Run).jpg",
          8, None, 30, 800, 1, "High", 0, 1,
          "Center", 260, 240.00, 4.50,
          "BrightRun", "+972-53-7000158", "run@brightrun.co.il",
          3000.00, 8.00, 7, "Free cancellation up to 7 days before event.", 1),
 
-        ("Acoustic Havdalah Circle", "Music", "SpiritualMusic",
-         "Acoustic circle with gentle nigunim and reflective songs for close gatherings.",
-         "We provide song sheets, soft percussion, and mindful facilitation for a warm community moment. "
-         "Can be arranged indoors or on a sheltered patio.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/havdalah.jpg",
-         12, None, 10, 120, 1, "Low", 0, 0,
-         "Jerusalem", 80, 60.00, 1.40,
-         "Nigun Circle", "+972-52-7000159", "circle@nigun.co.il",
-         1200.00, 10.00, 4, "Free cancellation up to 4 days before event.", 1),
-
         ("Hands‑on Photography Basics", "Workshop", "Photography",
          "Practical camera workshop covering composition, light, and focus.",
          "Participants shoot mini‑assignments and get instant feedback. "
          "Great as a creative team activity or enrichment hour for teens.",
-         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/services/photography.jpg",
+         "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/service/Hands%E2%80%91onPhotographyBasics.jpg",
          12, None, 8, 40, 0, "Low", 0, 1,
          "Haifa", 100, 80.00, 1.80,
          "FocusPoint", "+972-55-7000160", "photo@focuspoint.co.il",

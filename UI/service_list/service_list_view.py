@@ -1,20 +1,19 @@
 """
 View: Modern card grid + search/category/availability filters
-- Loads QSS from 'list_style.qss'
+- Reuses QSS 'list_style.qss' for consistent styling
 - Card shows subset: image, title, subtitle, price, region, availability
 """
 from pathlib import Path
 from typing import Optional, List, Dict
 
 from PySide6.QtCore import Qt, QSize, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer
-from PySide6.QtGui import QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QCheckBox,
     QPushButton, QScrollArea, QFrame, QGridLayout, QSizePolicy, QSpacerItem,
     QMessageBox, QGraphicsDropShadowEffect
 )
 
-# שימוש בפונקציה החיצונית לטעינת תמונות (מינימום שינוי ב-View)
+# Image loading identical to the Decor list
 from server.database.image_loader import load_into
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -27,19 +26,19 @@ def _apply_shadow(widget, radius=18, x_offset=0, y_offset=6):
     widget.setGraphicsEffect(eff)
 
 
-class DecorCard(QFrame):
+class ServiceCard(QFrame):
     clicked = Signal(int)
 
     def __init__(self, vm: Dict):
         super().__init__(objectName="Card")
         self.vm = vm
-        self.setCursor(Qt.PointingHandCursor)  # Change the mouse cursor to a pointing hand
+        self.setCursor(Qt.PointingHandCursor)
         self.setMouseTracking(True)
         self.setMinimumSize(300, 270)
-        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)  # Fixed avoids reflow jumps
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         _apply_shadow(self, radius=18, y_offset=6)
 
-        # Hover animation (unchanged)
+        # Hover animation
         self._base_geom: Optional[QRect] = None
         self._anim = QPropertyAnimation(self, b"geometry", self)
         self._anim.setDuration(140)
@@ -59,7 +58,6 @@ class DecorCard(QFrame):
         img.setAlignment(Qt.AlignCenter)
         self._img = img
 
-        # URL from VM or default
         url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
         load_into(img, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420, 160))
 
@@ -67,12 +65,9 @@ class DecorCard(QFrame):
         subtitle = QLabel(self.vm.get("subtitle", ""), objectName="CardSubtitle")
 
         meta = QHBoxLayout()
-        price = QLabel(self.vm.get("price", ""), objectName="Price")
         region = QLabel(self.vm.get("region") or "", objectName="Region")
         pill = QLabel("Available" if self.vm.get("available") else "Unavailable", objectName="Pill")
         pill.setProperty("ok", bool(self.vm.get("available")))
-        meta.addWidget(price)
-        meta.addStretch(1)
         meta.addWidget(region)
         meta.addWidget(pill)
 
@@ -103,15 +98,13 @@ class DecorCard(QFrame):
             self._anim.start()
         super().leaveEvent(e)
 
-    # --- Click handling ---
     def mouseReleaseEvent(self, e):
         if e.button() == Qt.LeftButton:
             self.clicked.emit(int(self.vm.get("id") or -1))
         super().mouseReleaseEvent(e)
 
 
-class DecorListView(QWidget):
-    # View -> Presenter
+class ServiceListView(QWidget):
     searchChanged = Signal(str)
     categoryChanged = Signal(str)
     availableChanged = Signal(bool)
@@ -119,7 +112,7 @@ class DecorListView(QWidget):
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Decorations Catalog")
+        self.setWindowTitle("Services Catalog")
         self.resize(1120, 720)
         self._cards_cache: List[Dict] = []
         self._build()
@@ -127,17 +120,15 @@ class DecorListView(QWidget):
 
     def showEvent(self, e):
         super().showEvent(e)
-        QTimer.singleShot(0, self._rebuild_grid)  # run after layout is ready
+        QTimer.singleShot(0, self._rebuild_grid)
 
-    # ---------- UI ----------
     def _build(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
-        # Toolbar
         bar = QHBoxLayout()
-        self.search = QLineEdit(placeholderText="Search by name, description or theme…")
+        self.search = QLineEdit(placeholderText="Search services by name, description or subcategory…")
         self.search.textChanged.connect(lambda s: self.searchChanged.emit(s))
 
         self.category = QComboBox()
@@ -156,7 +147,6 @@ class DecorListView(QWidget):
         bar.addWidget(self.refresh_btn, 0)
         root.addLayout(bar)
 
-        # Scrollable responsive grid
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setAlignment(Qt.AlignLeft | Qt.AlignTop)
@@ -172,14 +162,12 @@ class DecorListView(QWidget):
         self.empty.setVisible(False)
         root.addWidget(self.empty)
 
-    # set stylesheet from external QSS file
     def _load_qss(self):
         from pathlib import Path
         qss_path = Path(__file__).resolve().parent.parent / "style&icons" / "list_style.qss"
         if qss_path.exists():
             self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
 
-    # ---------- Presenter API ----------
     def set_busy(self, busy: bool):
         self.setDisabled(busy)
 
@@ -210,9 +198,7 @@ class DecorListView(QWidget):
         if self._cards_cache:
             self._rebuild_grid()
 
-    # Responsive grid: number of columns based on viewport width
     def _rebuild_grid(self):
-        # clear
         while self.grid.count():
             it = self.grid.takeAt(0)
             w = it.widget()
@@ -230,7 +216,7 @@ class DecorListView(QWidget):
 
         r = c = 0
         for vm in self._cards_cache:
-            card = DecorCard(vm)
+            card = ServiceCard(vm)
             card.clicked.connect(lambda _id, v=vm: print("Card clicked:", v.get("id"), v.get("title")))
             self.grid.addWidget(card, r, c)
             c += 1
@@ -238,6 +224,5 @@ class DecorListView(QWidget):
                 r += 1
                 c = 0
 
-        # vertical spacer to pin cards to top
         self.grid.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding), r + 1, 0, 1, cols)
         self.grid.setRowStretch(r + 1, 1)

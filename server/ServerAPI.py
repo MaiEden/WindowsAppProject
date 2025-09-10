@@ -37,3 +37,25 @@ def insert_user(phone: str, username: str, password_hash: str, region: str) -> i
 async def get_halls():
     """החזרת כל האולמות (דוגמה)"""
     return read_api.get_decor_cards()
+
+@app.get("/DB/services/list")
+def list_services(
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    available: Optional[bool] = None,
+    region: Optional[str] = None,
+    order_by: str = "ServiceName",
+    ascending: bool = True,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+):
+    return read_api.get_service_cards(
+        search=search,
+        category=category,
+        available=available,
+        region=region,
+        order_by=order_by,
+        ascending=ascending,
+        limit=limit,
+        offset=offset,
+    )

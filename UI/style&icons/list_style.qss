@@ -1,0 +1,202 @@
+/* =========================
+   Cards
+   ========================= */
+QFrame#Card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid rgba(0,0,0,0.06);
+}
+
+/* כל התוויות בתוך הכרטיס יקבלו ריווח פנימי נעים */
+QFrame#Card QLabel {
+    padding-left: 12px;
+    padding-right: 12px;
+}
+
+/* תמונת הכרטיס */
+QLabel#CardImage {
+    background: #f5f7fa;
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    padding: 0; /* התמונה ממלאת רוחב */
+}
+
+/* כותרת גדולה יותר */
+QLabel#CardTitle {
+    font-size: 15px;
+    font-weight: 600;
+    color: #1f2937; /* gray-800 */
+}
+
+/* תת-כותרת קטנה ועדינה יותר */
+QLabel#CardSubtitle {
+    font-size: 13px;
+    color: #6b7280; /* gray-500 */
+}
+
+/* אזור */
+QLabel#Region {
+    font-size: 12px;
+    color: #374151; /* gray-700 */
+}
+
+/* hover קליל לכרטיס */
+QFrame#Card:hover {
+    border-color: rgba(0,0,0,0.10);
+}
+
+/* =========================
+   Toolbar (search / category / checkbox / button)
+   ========================= */
+QLineEdit {
+    padding: 8px 12px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    selection-background-color: #bfdbfe; /* כחול בהיר לבחירה */
+}
+QLineEdit:hover { border-color: #9ca3af; }
+QLineEdit:focus { border: 1px solid #93c5fd; }
+
+QComboBox {
+    padding: 6px 10px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+}
+QComboBox:hover { border-color: #9ca3af; }
+QComboBox:focus { border-color: #93c5fd; }
+
+QComboBox QAbstractItemView {
+    border: 1px solid #d1d5db;
+    background: #ffffff;
+    selection-background-color: #e5e7eb;
+    outline: 0;
+}
+
+QCheckBox { spacing: 6px; }
+QCheckBox::indicator {
+    width: 16px; height: 16px;
+}
+QCheckBox::indicator:unchecked {
+    border: 1px solid #9ca3af;
+    border-radius: 4px;
+    background: #ffffff;
+}
+QCheckBox::indicator:checked {
+    border: 1px solid #2563eb;
+    background: #2563eb;
+    border-radius: 4px;
+}
+
+/* Buttons */
+QPushButton {
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    font-weight: 600;
+}
+QPushButton:hover   { background: #1d4ed8; }
+QPushButton:pressed { background: #1e40af; }
+QPushButton:disabled{ background: #93c5fd; color: #e5e7eb; }
+
+/* =========================
+   Scrollbars
+   ========================= */
+QScrollArea { background: transparent; }
+
+QScrollBar:vertical {
+    width: 10px;
+    background: transparent;
+    margin: 4px 2px 4px 2px;
+}
+QScrollBar::handle:vertical {
+    background: rgba(0,0,0,0.20);
+    min-height: 24px;
+    border-radius: 6px;
+}
+QScrollBar::handle:vertical:hover { background: rgba(0,0,0,0.30); }
+QScrollBar::add-line:vertical,
+QScrollBar::sub-line:vertical { height: 0; }
+
+QScrollBar:horizontal {
+    height: 10px;
+    background: transparent;
+    margin: 2px 4px 2px 4px;
+}
+QScrollBar::handle:horizontal {
+    background: rgba(0,0,0,0.20);
+    min-width: 24px;
+    border-radius: 6px;
+}
+QScrollBar::handle:horizontal:hover { background: rgba(0,0,0,0.30); }
+QScrollBar::add-line:horizontal,
+QScrollBar::sub-line:horizontal { width: 0; }
+
+/* =========================
+   Availability Pill  (שימי לב: זה בסוף הקובץ כדי לקבל קדימות)
+   ========================= */
+
+/* בסיס – עיגול וריווח */
+QFrame#Card QLabel#Pill,
+QLabel#Pill {
+    padding: 4px 12px;
+    min-height: 22px;                 /* מבטיח גובה מספיק לגלולה */
+    border-radius: 999px;             /* פינות רכות לגמרי */
+    font-size: 12px;
+    font-weight: 600;
+    border: 1px solid transparent;
+    qproperty-alignment: 'AlignCenter';
+}
+
+/* Available */
+QFrame#Card QLabel#Pill[ok="true"],
+QLabel#Pill[ok="true"] {
+    color: #166534;                   /* green-800 */
+    background-color: #e8f5ec;        /* ירוק עדין */
+    border: 1px solid #bbdfc7;
+    border-radius: 999px;
+}
+
+/* Unavailable */
+QFrame#Card QLabel#Pill[ok="false"],
+QLabel#Pill[ok="false"] {
+    color: #92400e;                   /* amber-800 */
+    background-color: #fff7ed;        /* כתמתם עדין */
+    border: 1px solid #fde0c2;
+    border-radius: 999px;
+}
+
+/* ===== Availability Pill — FINAL OVERRIDE ===== */
+QFrame#Card QLabel#Pill,
+QLabel#Pill {
+    qproperty-autoFillBackground: true;   /* מכריח צביעת רקע */
+    padding: 4px 12px;
+    min-height: 22px;
+    border: 2px solid #bbdfc7;            /* מראה קצוות בבירור לבדיקת רדיוס */
+    border-radius: 16px;                   /* קצוות רכים */
+    font-size: 12px;
+    font-weight: 600;
+    qproperty-alignment: 'AlignCenter';
+    background-color: #e8f5ec;            /* ברירת מחדל ירקרקה */
+    color: #166534;
+}
+
+/* Available/Unavailable — אם את משנה מצב, הצבעים יוחלפו אבל הרדיוס נשאר */
+QFrame#Card QLabel#Pill[ok="true"],
+QLabel#Pill[ok="true"] {
+    background-color: #e8f5ec;
+    border-color: #bbdfc7;
+    color: #166534;
+    border-radius: 16px;
+}
+
+QFrame#Card QLabel#Pill[ok="false"],
+QLabel#Pill[ok="false"] {
+    background-color: #fff7ed;
+    border-color: #fde0c2;
+    color: #92400e;
+    border-radius: 16px;
+}
