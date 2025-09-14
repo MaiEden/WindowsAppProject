@@ -59,3 +59,29 @@ def list_services(
         limit=limit,
         offset=offset,
     )
+
+@app.get("/DB/halls/list")
+def list_halls(
+    search: Optional[str] = None,
+    hall_type: Optional[str] = None,
+    accessible: Optional[bool] = None,
+    region: Optional[str] = None,
+    order_by: str = "HallName",
+    ascending: bool = True,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+):
+    return read_api.get_hall_cards(
+        search=search,
+        hall_type=hall_type,
+        accessible=accessible,
+        region=region,
+        order_by=order_by,
+        ascending=ascending,
+        limit=limit,
+        offset=offset,
+    )
+
+@app.get("/DB/decors/get/{decor_id}")
+def get_decor(decor_id: int):
+    return read_api.get_decor_by_id(decor_id)

@@ -432,6 +432,98 @@ def get_service_cards(
 
     return db.query(sql, params)
 
+
+def get_hall_cards(
+    search: Optional[str] = None,
+    hall_type: Optional[str] = None,
+    accessible: Optional[bool] = None,
+    region: Optional[str] = None,
+    order_by: str = "HallName",   # HallName | Capacity | Region | HallType | MinPrice
+    ascending: bool = True,
+    limit: Optional[int] = None,
+    offset: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """
+    Return a slim list of halls for cards, with optional filters & paging.
+
+    Filters:
+      - search: free-text over HallName, Description
+      - hall_type: exact match (ignore if 'All'/'')
+      - accessible: True/False (filters by WheelchairAccessible)
+      - region: exact match (ignore if 'All'/'')
+    Sorting:
+      - order_by in {'HallName','Capacity','Region','HallType','MinPrice'}
+      - ascending True/False
+    Paging:
+      - if limit provided, uses OFFSET/FETCH (SQL Server 2012+)
+    """
+
+    order_map = {
+        "HallName": "h.HallName",
+        "Capacity": "h.Capacity",
+        "Region": "h.Region",
+        "HallType": "h.HallType",
+        "MinPrice": "mp.MinPrice",
+    }
+    order_col = order_map.get(order_by, "h.HallName")
+    order_dir = "ASC" if ascending else "DESC"
+
+    sql = f"""
+    SELECT
+        h.HallId,
+        h.HallName,
+        h.HallType,
+        h.Capacity,
+        h.Region,
+        h.WheelchairAccessible,
+        h.PhotoUrl,
+        mp.MinPrice
+    FROM dbo.Hall AS h
+    OUTER APPLY (
+        SELECT MIN(v.p) AS MinPrice
+        FROM (VALUES (h.PricePerPerson), (h.PricePerHour), (h.PricePerDay)) AS v(p)
+        WHERE v.p IS NOT NULL
+    ) AS mp
+    WHERE 1=1
+    """
+    params: List[Any] = []
+
+    # Filters
+    if hall_type and hall_type not in ("All", "All types", ""):
+        sql += " AND h.HallType = ?"
+        params.append(hall_type)
+
+    if region and region not in ("All", "All regions", ""):
+        sql += " AND h.Region = ?"
+        params.append(region)
+
+    if accessible is True:
+        sql += " AND h.WheelchairAccessible = 1"
+    elif accessible is False:
+        sql += " AND h.WheelchairAccessible = 0"
+
+    if search:
+        like = f"%{search}%"
+        sql += " AND (h.HallName LIKE ? OR h.Description LIKE ?)"
+        params.extend([like, like])
+
+    # Ordering
+    sql += f" ORDER BY {order_col} {order_dir}"
+
+    # Paging
+    if limit is not None:
+        off = int(offset or 0)
+        lim = int(limit)
+        sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        params.extend([off, lim])
+
+    return db.query(sql, params)
+
+def get_decor_by_id(decor_id: int) -> Optional[Dict[str, Any]]:
+    sql = "SELECT * FROM dbo.DecorOption WHERE DecorId = ?;"
+    rows = db.query(sql, (decor_id,))
+    return rows[0] if rows else None
+
 if __name__ == "__main__":
     print("services:"); print_table(get_services())
     # Demo printing of queries
