@@ -524,6 +524,12 @@ def get_decor_by_id(decor_id: int) -> Optional[Dict[str, Any]]:
     rows = db.query(sql, (decor_id,))
     return rows[0] if rows else None
 
+def get_service_by_id(service_id: int) -> Optional[Dict[str, Any]]:
+    sql = "SELECT * FROM dbo.ServiceOption WHERE ServiceId = ?;"
+    rows = db.query(sql, (service_id,))
+    return rows[0] if rows else None
+
+
 if __name__ == "__main__":
     print("services:"); print_table(get_services())
     # Demo printing of queries

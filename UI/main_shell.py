@@ -1,9 +1,6 @@
 # ============================
-# File: main_shell.py  (wired to Decor details)
+# File: main_shell.py  (Decor + Service details wired)
 # ============================
-# Single-window shell with LEFT sidebar, pretty arrow buttons, history,
-# and per-item Decor details pages integrated with Back/Forward.
-
 import sys
 from pathlib import Path
 from PySide6.QtCore import Qt
@@ -39,6 +36,11 @@ from decorator_list.decor_list_presenter import DecorListPresenter
 from decorator_list.decor_details_view import DecorDetailsView
 from decorator_list.decor_details_model import DecorDetailsModel
 from decorator_list.decor_details_presenter import DecorDetailsPresenter
+
+# --- NEW: Service details ---
+from service_list.service_details_view import ServiceDetailsView
+from service_list.service_details_model import ServiceDetailsModel
+from service_list.service_details_presenter import ServiceDetailsPresenter
 
 
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
@@ -77,7 +79,7 @@ class AppWindow(QMainWindow):
     def add_page(self, name: str, widget: QWidget):
         self._pages[name] = widget; self._stack.addWidget(widget)
     def set_shell(self, shell: "MainShell"):
-        if hasattr(self, "_shell") and self._shell:
+        if getattr(self, "_shell", None):
             self._stack.removeWidget(self._shell); self._shell.deleteLater()
         self._shell = shell; self.add_page("shell", shell); self.keep(shell)
     def goto(self, name: str):
@@ -111,11 +113,13 @@ class MainShell(QWidget):
         self.back_btn = circle_icon_button("◀","Back")
         self.fwd_btn  = circle_icon_button("▶","Forward")
 
-        top.addWidget(logo); top.addSpacing(6); top.addWidget(title); top.addStretch(1); top.addWidget(self.back_btn); top.addWidget(self.fwd_btn)
+        top.addWidget(logo); top.addSpacing(6); top.addWidget(title); top.addStretch(1)
+        top.addWidget(self.back_btn); top.addWidget(self.fwd_btn)
         root.addLayout(top)
 
         mid = QHBoxLayout(); mid.setSpacing(10)
-        side = QFrame(objectName="SidePanel"); side_l = QVBoxLayout(side); side_l.setContentsMargins(12,12,12,12); side_l.setSpacing(8)
+        side = QFrame(objectName="SidePanel")
+        side_l = QVBoxLayout(side); side_l.setContentsMargins(12,12,12,12); side_l.setSpacing(8)
 
         def mkbtn(text, emoji):
             b = QPushButton(f"{emoji}  {text}", objectName="NavBtn")
@@ -128,7 +132,13 @@ class MainShell(QWidget):
         self.btn_profile  = mkbtn("Personal Info","👤")
         self.btn_ai       = mkbtn("AI Help","🤖")
 
-        self._nav_buttons = [("events",self.btn_events),("services",self.btn_services),("decors",self.btn_decors),("profile",self.btn_profile),("ai",self.btn_ai)]
+        self._nav_buttons = [
+            ("events",self.btn_events),
+            ("services",self.btn_services),
+            ("decors",self.btn_decors),
+            ("profile",self.btn_profile),
+            ("ai",self.btn_ai),
+        ]
         for _, b in self._nav_buttons: side_l.addWidget(b)
         side_l.addStretch(1); side.setFixedWidth(220)
 
@@ -140,7 +150,11 @@ class MainShell(QWidget):
             QFrame#SidePanel { background:#fff; border:1px solid rgba(0,0,0,0.07); border-radius:14px; }
             QPushButton#NavBtn { text-align:left; padding:10px 14px; border:none; border-radius:10px; font-size:14px; }
             QPushButton#NavBtn:hover:!checked { background:rgba(0,0,0,0.04); }
-            QPushButton#NavBtn:checked { background:rgba(66,133,244,0.12); border-left:3px solid rgb(66,133,244); padding-left:11px; font-weight:600; }
+            QPushButton#NavBtn:checked {
+                background:rgba(66,133,244,0.12);
+                border-left:3px solid rgb(66,133,244);
+                padding-left:11px; font-weight:600;
+            }
         """)
         self._update_nav_buttons()
 
@@ -154,18 +168,21 @@ class MainShell(QWidget):
         self.btn_ai.clicked.connect(lambda: self.navigate("ai"))
 
     def _load_microfrontends(self):
+        # Events
         halls_v = HallListView(); halls_p = HallListPresenter(HallListModel(), halls_v); halls_p.start()
         self._presenters.append(halls_p); self._register_center_page("events", halls_v)
 
+        # Services (list)
         svc_v = ServiceListView(); svc_p = ServiceListPresenter(ServiceListModel(), svc_v); svc_p.start()
         self._presenters.append(svc_p); self._register_center_page("services", svc_v)
+        svc_v.cardClicked.connect(self.open_service_details)  # NEW
 
+        # Decorations (list)
         dec_v = DecorListView(); dec_p = DecorListPresenter(DecorListModel(), dec_v); dec_p.start()
         self._presenters.append(dec_p); self._register_center_page("decors", dec_v)
+        dec_v.cardClicked.connect(self.open_decor_details)    # NEW
 
-        # NEW: open details page when a card is clicked
-        dec_v.cardClicked.connect(self.open_decor_details)
-
+        # Placeholders
         self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
         self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
 
@@ -177,7 +194,7 @@ class MainShell(QWidget):
     def _register_center_page(self, name: str, widget: QWidget):
         self._center_pages[name] = widget; self.center_stack.addWidget(widget)
 
-    # --- NEW ---
+    # --- Details openers ---
     def open_decor_details(self, decor_id: int):
         page_name = f"decor:{decor_id}"
         if page_name in self._center_pages:
@@ -185,16 +202,28 @@ class MainShell(QWidget):
         view = DecorDetailsView()
         presenter = DecorDetailsPresenter(DecorDetailsModel(), view)
         presenter.start(decor_id)
-        self._presenters.append(presenter)     # prevent GC
+        self._presenters.append(presenter)
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
-    # Navigation helpers
+    def open_service_details(self, service_id: int):
+        page_name = f"service:{service_id}"
+        if page_name in self._center_pages:
+            self.navigate(page_name); return
+        view = ServiceDetailsView()
+        presenter = ServiceDetailsPresenter(ServiceDetailsModel(), view)
+        presenter.start(service_id)
+        self._presenters.append(presenter)
+        self._register_center_page(page_name, view)
+        self.navigate(page_name)
+
+    # --- Navigation helpers ---
     def navigate(self, name: str):
         if name not in self._center_pages: return
         self.center_stack.setCurrentWidget(self._center_pages[name])
         if self._hist_index == -1 or self._history[self._hist_index] != name:
-            if self._hist_index < len(self._history) - 1: self._history = self._history[: self._hist_index + 1]
+            if self._hist_index < len(self._history) - 1:
+                self._history = self._history[: self._hist_index + 1]
             self._history.append(name); self._hist_index += 1
         self._update_nav_buttons()
         for key, btn in self._nav_buttons: btn.setChecked(key == name)

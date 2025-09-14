@@ -85,3 +85,10 @@ def list_halls(
 @app.get("/DB/decors/get/{decor_id}")
 def get_decor(decor_id: int):
     return read_api.get_decor_by_id(decor_id)
+
+# ServerAPI.py
+@app.get("/DB/services/get/{service_id}")
+def get_service(service_id: int):
+    return read_api.get_service_by_id(service_id)
+
+
