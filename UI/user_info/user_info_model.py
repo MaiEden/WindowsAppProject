@@ -7,7 +7,10 @@ class UserInfoModel:
         self.db = DbGateway()
 
     def get_user(self, username: str) -> Optional[Dict]:
-        rows = self.db.query("SELECT UserId, Username, Phone, Region FROM dbo.Users WHERE Username = ?;", (username,))
+        rows = self.db.query(
+            "SELECT UserId, Username, Phone, Region FROM dbo.Users WHERE Username = ?;",
+            (username,),
+        )
         return rows[0] if rows else None
 
     def get_decor_used(self, user_id: int) -> List[Dict]:
@@ -51,3 +54,48 @@ class UserInfoModel:
         ORDER BY h.HallName;
         """
         return self.db.query(sql, (user_id,))
+
+    def get_owned_items(self, user_id: int) -> List[Dict]:
+        """
+        Aggregates all items owned by the user across Services, Halls, and Decor.
+        RelationType is matched against common variants just in case ('OWNER','OWNED','OWNER_OF').
+        """
+        sql = """
+        SELECT s.ServiceId AS id,
+               s.ServiceName AS title,
+               COALESCE(s.ShortDescription, s.Subcategory) AS subtitle,
+               s.Region AS region,
+               s.PhotoUrl AS photo,
+               'Service' AS pill
+        FROM dbo.UserServiceLink us
+        INNER JOIN dbo.ServiceOption s ON s.ServiceId = us.ServiceId
+        WHERE us.UserId = ? AND us.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+        UNION ALL
+
+        SELECT h.HallId AS id,
+               h.HallName AS title,
+               h.HallType AS subtitle,
+               h.Region AS region,
+               h.PhotoUrl AS photo,
+               'Hall' AS pill
+        FROM dbo.UserHall uh
+        INNER JOIN dbo.Hall h ON h.HallId = uh.HallId
+        WHERE uh.UserId = ? AND uh.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+        UNION ALL
+
+        SELECT d.DecorId AS id,
+               d.DecorName AS title,
+               CONCAT(d.Category, COALESCE(' · ' + d.Theme, '')) AS subtitle,
+               d.Region AS region,
+               d.PhotoUrl AS photo,
+               'Decor' AS pill
+        FROM dbo.UserDecor ud
+        INNER JOIN dbo.DecorOption d ON d.DecorId = ud.DecorId
+        WHERE ud.UserId = ? AND ud.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+        ORDER BY title;
+        """
+        # Note: parameters must match the three placeholders above (same user id repeated)
+        return self.db.query(sql, (user_id, user_id, user_id))
