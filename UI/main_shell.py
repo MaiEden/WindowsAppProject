@@ -19,6 +19,7 @@ for p in [
     APP_BASE / "decorator_list",
     APP_BASE / "style&icons",
     APP_BASE / "agent",
+    APP_BASE / "user_info",
 ]:
     sys.path.append(str(p))
 
@@ -47,6 +48,11 @@ from service_list.service_details_presenter import ServiceDetailsPresenter
 
 # --- Chat MVP factory ---
 from agent.chat_factory import build_chat_module
+
+# user info
+from user_info.user_info_view import UserInfoView
+from user_info.user_info_model import UserInfoModel
+from user_info.user_info_presenter import UserInfoPresenter
 
 
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
@@ -192,8 +198,12 @@ class MainShell(QWidget):
         chat_v, chat_p = build_chat_module(PROJECT_ROOT, sys.executable)
         self._presenters.append(chat_p); self._register_center_page("ai", chat_v)
 
+        # User profile (real view instead of placeholder)
+        user_v = UserInfoView(); user_p = UserInfoPresenter(UserInfoModel(), user_v); user_p.start(self.username)
+        self._presenters.append(user_p); self._register_center_page("profile", user_v)
+
         # Placeholders
-        self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
+        #self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
        # self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
 
     def _placeholder(self, text: str) -> QWidget:

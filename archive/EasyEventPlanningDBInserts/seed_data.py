@@ -58,19 +58,7 @@ def seed() -> None:
     user_rows = db.query("SELECT UserId, Username FROM dbo.Users;")
     user_id = {row["Username"]: row["UserId"] for row in user_rows}
 
-    # 4) Events
-    events = [
-        (date(2025, 9, 1),  time(18, 0), "Birthday",    user_id["Maya Merkovich"]),
-        (date(2025, 9, 5),  time(20, 0), "Wedding",     user_id["Dan Keminzky"]),
-        (date(2025, 10, 3), time(11, 0), "Bar Mitzvah", user_id["Lior Levy"]),
-        (date(2025, 10, 8), time(16, 0), "Happy hour",  user_id["Noa Hadad"]),
-    ]
-    db.execute_many(
-        "INSERT INTO dbo.Event (EventDate, EventTime, EventType, ManagerUserId) VALUES (?, ?, ?, ?);",
-        events
-    )
-
-    # 5) Halls (sample subset shown; extend as needed)
+    # 4) Halls (sample subset shown; extend as needed)
     # === Halls (start of 50) ===
     halls = [
         ("Tel Aviv Loft 22", "Loft", 120, "Center", 32.0853, 34.7818,
