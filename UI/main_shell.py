@@ -4,7 +4,7 @@
 import sys
 from pathlib import Path
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QPixmap
+from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
     QPushButton, QToolButton, QStackedWidget, QSizePolicy, QFrame
@@ -87,6 +87,7 @@ class AppWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Event Planner – App")
+        self.setWindowIcon(QIcon(str(APP_BASE / "style&icons" / "no_words_icon.png")))
         self.setMinimumSize(960, 640)
 
         self._stack = QStackedWidget()
@@ -120,6 +121,7 @@ class MainShell(QWidget):
     """Main application surface (after successful auth)."""
     def __init__(self, username: str):
         super().__init__()
+        self.setWindowTitle("Event Planner – App")
         self.username = username
 
         # history for center stack

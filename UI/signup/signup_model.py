@@ -33,4 +33,4 @@ class SignUpModel:
         # Insert the new user into the database
         server_access.request(f"/DB/users/insert_user/{phone}/{username}/{password_hash}/{region}")
         print(server_access.request(f"/DB/users/get_user_by_name/{username}"))  # Debug: print the newly created user
-        return True, "Account created successfully."
+        return True, "Account created successfully, loading app data..."
