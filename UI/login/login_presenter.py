@@ -7,9 +7,9 @@ from .login_model import AuthModel
 from .login_view import LoginView
 from PySide6.QtCore import Signal, QObject
 
-DEMO_PASSWORD = "admin1234"
+DEMO_PASSWORD = "hash:noa"
 
-DEMO_USER = "admin"
+DEMO_USER = "Noa hadad"
 
 
 class LoginPresenter(QObject):

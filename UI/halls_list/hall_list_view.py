@@ -116,6 +116,7 @@ class HallListView(QWidget):
     typeChanged = Signal(str)
     accessibleChanged = Signal(bool)
     refreshRequested = Signal()
+    cardClicked = Signal(int)
 
     def __init__(self):
         super().__init__()
@@ -231,7 +232,7 @@ class HallListView(QWidget):
         r = c = 0
         for vm in self._cards_cache:
             card = HallCard(vm)
-            card.clicked.connect(lambda _id, v=vm: print("Card clicked:", v.get("id"), v.get("title")))
+            card.clicked.connect(lambda _id, v=vm: self.cardClicked.emit(int(v.get("id") or -1)))
             self.grid.addWidget(card, r, c)
             c += 1
             if c >= cols:

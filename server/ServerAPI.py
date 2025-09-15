@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import server.database.read_api as read_api
 from server.database import insert_api
-
+from server.external_services.cordinats.geocoding_client import get_address
 app = FastAPI(title="Events Backend (Demo)")
 
 # מאפשר קריאות מכל מקור (בדמו)
@@ -90,5 +90,23 @@ def get_decor(decor_id: int):
 @app.get("/DB/services/get/{service_id}")
 def get_service(service_id: int):
     return read_api.get_service_by_id(service_id)
+
+# --- Halls: get single + optional reverse geocode ---
+@app.get("/DB/halls/get/{hall_id}")
+def get_hall(hall_id: int, resolveAddress: bool = True):
+    row = read_api.get_hall_by_id(hall_id)
+    if not row:
+        return None
+    # אם יש קואורדינטות ונדרש גיאוקוד
+    if resolveAddress:
+        lat = row.get("Latitude")
+        lon = row.get("Longitude")
+        if lat is not None and lon is not None:
+            try:
+                row["Address"] = get_address(float(lat), float(lon))  # dict עם formatted_address ועוד
+            except Exception as e:
+                # לא להפיל את הבקשה רק בגלל גיאוקוד
+                row["AddressError"] = str(e)
+    return row
 
 
