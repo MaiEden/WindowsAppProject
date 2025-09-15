@@ -10,12 +10,15 @@ from PySide6.QtWidgets import (
     QPushButton, QToolButton, QStackedWidget, QSizePolicy, QFrame
 )
 
+
 APP_BASE = Path(__file__).resolve().parent
+PROJECT_ROOT = APP_BASE.parent  # WindowsAppProject/
 for p in [
     APP_BASE / "halls_list",
     APP_BASE / "service_list",
     APP_BASE / "decorator_list",
     APP_BASE / "style&icons",
+    APP_BASE / "agent",
 ]:
     sys.path.append(str(p))
 
@@ -41,6 +44,9 @@ from decorator_list.decor_details_presenter import DecorDetailsPresenter
 from service_list.service_details_view import ServiceDetailsView
 from service_list.service_details_model import ServiceDetailsModel
 from service_list.service_details_presenter import ServiceDetailsPresenter
+
+# --- Chat MVP factory ---
+from agent.chat_factory import build_chat_module
 
 
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
@@ -182,9 +188,13 @@ class MainShell(QWidget):
         self._presenters.append(dec_p); self._register_center_page("decors", dec_v)
         dec_v.cardClicked.connect(self.open_decor_details)    # NEW
 
+        # AI (chat) – via factory (keeps settings out of the presenter)
+        chat_v, chat_p = build_chat_module(PROJECT_ROOT, sys.executable)
+        self._presenters.append(chat_p); self._register_center_page("ai", chat_v)
+
         # Placeholders
         self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
-        self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
+       # self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
 
     def _placeholder(self, text: str) -> QWidget:
         w = QWidget(); lay = QVBoxLayout(w); lay.addStretch(1)
