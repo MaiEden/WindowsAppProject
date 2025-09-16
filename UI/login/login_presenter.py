@@ -1,13 +1,14 @@
+# UI/login/login_presenter.py
 """
 Presenter: mediates between View and Model
 - Pulls data from View, calls Model, updates View
 - Keeps UI logic out of the Model and heavy logic out of the View
-(גרסה תואמת Python 3.8: QThread + Worker, ללא QtConcurrent/QFutureWatcher)
+גרסה תואמת Python 3.8/PySide6: QThread + Worker ללא QtConcurrent/QFutureWatcher
 """
 
 from typing import Optional
 
-from PySide6.QtCore import QObject, Signal, Slot, QThread
+from PySide6.QtCore import QObject, Signal, Slot, QThread, Qt
 
 from UI.login.login_model import AuthModel
 from UI.login.login_view import LoginView
@@ -46,6 +47,7 @@ class LoginPresenter(QObject):
         self.view = view
         self._thread: Optional[QThread] = None
         self._worker: Optional[_LoginWorker] = None
+        self._pending_username: str = ""
         self._connect_signals()
 
     def _connect_signals(self):
@@ -59,39 +61,60 @@ class LoginPresenter(QObject):
 
         username = self.view.get_username()
         password = self.view.get_password()
+        self._pending_username = username
 
-        # יצירת thread ו־worker
-        self._thread = QThread(self)
-        self._worker = _LoginWorker(self.model, username, password)
-        self._worker.moveToThread(self._thread)
-
-        # כש־thread מתחיל → להריץ את העבודה
-        self._thread.started.connect(self._worker.run)
-
-        # כשנגמר → לעדכן UI ולנקות
-        def _on_finished(ok: bool):
-            stop_button_loading(self.view.sign_in_btn)
-            self.print_result(ok)
-            if ok:
-                self.view.show_message("Signed in successfully, loading app data...", status="ok")
-                self.auth_ok.emit(username)
-            else:
-                self.view.show_message("Invalid username or password.", status="error")
-
-            # ניקוי מסודר
-            if self._thread is not None:
+        # אם יש thread קודם בתהליך — נסיים אותו בעדינות
+        if self._thread is not None:
+            try:
                 self._thread.quit()
-                self._thread.wait()
-                self._thread.deleteLater()
-            if self._worker is not None:
-                self._worker.deleteLater()
+                self._thread.wait(100)
+            except Exception:
+                pass
             self._thread = None
             self._worker = None
 
-        self._worker.finished.connect(_on_finished)
+        # יצירת thread ו־worker
+        th = QThread(self)
+        th.setObjectName("LoginWorkerThread")
+        worker = _LoginWorker(self.model, username, password)
+        worker.moveToThread(th)
+
+        # כשתחיל ה-thread → להריץ את העבודה
+        th.started.connect(worker.run)
+
+        # כשנגמרת העבודה:
+        # 1) לעדכן UI ב-GUI thread (QueuedConnection)
+        worker.finished.connect(self._on_finished, Qt.QueuedConnection)
+        # 2) לסגור את ה-thread
+        worker.finished.connect(th.quit)
+        # 3) לנקות משאבים כשה-thread באמת נסגר
+        th.finished.connect(worker.deleteLater)
+        th.finished.connect(th.deleteLater)
+
+        # שמירת רפרנסים כדי למנוע GC
+        self._thread = th
+        self._worker = worker
 
         # הפעלה
-        self._thread.start()
+        th.start()
+
+    @Slot(bool)
+    def _on_finished(self, ok: bool):
+        """תמיד רץ ב-GUI thread (כי חיברנו כ-QueuedConnection)."""
+        stop_button_loading(self.view.sign_in_btn)
+        self.print_result(ok)
+
+        if ok:
+            self.view.show_message("Signed in successfully, loading app data...", status="ok")
+            # שליחת שם המשתמש שנטען בתחילת הפעולה
+            self.auth_ok.emit(self._pending_username)
+        else:
+            self.view.show_message("Invalid username or password.", status="error")
+
+        # שחרור רפרנסים; האובייקטים עצמם יימחקו דרך החיבורים ב-on_sign_in
+        self._pending_username = ""
+        self._worker = None
+        self._thread = None
 
     @Slot()
     def on_use_demo(self):

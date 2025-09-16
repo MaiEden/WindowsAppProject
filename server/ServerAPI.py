@@ -1,5 +1,5 @@
 #uvicorn ServerAPI:app --reload --port 8000
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -7,6 +7,7 @@ import server.database.read_api as read_api
 from server.database import insert_api
 from server.external_services.cordinats.geocoding_client import get_address
 from pydantic import BaseModel
+
 
 app = FastAPI(title="Events Backend (Demo)")
 
@@ -42,14 +43,14 @@ async def get_halls():
 
 @app.get("/DB/services/list")
 def list_services(
-    search: Optional[str] = None,
-    category: Optional[str] = None,
-    available: Optional[bool] = None,
-    region: Optional[str] = None,
-    order_by: str = "ServiceName",
-    ascending: bool = True,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
+        search: Optional[str] = None,
+        category: Optional[str] = None,
+        available: Optional[bool] = None,
+        region: Optional[str] = None,
+        order_by: str = "ServiceName",
+        ascending: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
 ):
     return read_api.get_service_cards(
         search=search,
@@ -62,16 +63,17 @@ def list_services(
         offset=offset,
     )
 
+
 @app.get("/DB/halls/list")
 def list_halls(
-    search: Optional[str] = None,
-    hall_type: Optional[str] = None,
-    accessible: Optional[bool] = None,
-    region: Optional[str] = None,
-    order_by: str = "HallName",
-    ascending: bool = True,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
+        search: Optional[str] = None,
+        hall_type: Optional[str] = None,
+        accessible: Optional[bool] = None,
+        region: Optional[str] = None,
+        order_by: str = "HallName",
+        ascending: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
 ):
     return read_api.get_hall_cards(
         search=search,
@@ -111,6 +113,21 @@ def get_hall(hall_id: int, resolveAddress: bool = True):
                 row["AddressError"] = str(e)
     return row
 
+@app.get("/DB/users/{user_id}/decor/used")
+def user_decor_used(user_id: int) -> List[Dict[str, Any]]:
+    return read_api.get_decor_used_by_user(user_id)
+
+@app.get("/DB/users/{user_id}/services/used")
+def user_services_used(user_id: int) -> List[Dict[str, Any]]:
+    return read_api.get_services_used_by_user(user_id)
+
+@app.get("/DB/users/{user_id}/halls/used")
+def user_halls_used(user_id: int) -> List[Dict[str, Any]]:
+    return read_api.get_halls_used_by_user(user_id)
+
+@app.get("/DB/users/{user_id}/owned")
+def user_owned_items(user_id: int) -> List[Dict[str, Any]]:
+    return read_api.get_owned_items_by_user(user_id)
 
 # ---------- Add Decor (Create) ----------
 class DecorCreate(BaseModel):
@@ -140,18 +157,3 @@ def create_decor(item: DecorCreate) -> int:
     """
     from server.database import insert_api  # local import to match your structure
     return insert_api.add_decor_option(item.dict())
-
-
-# ---------- User <-> Decor link ----------
-class UserDecorLink(BaseModel):
-    UserId: int
-    DecorId: int
-    RelationType: str = "OWNER"  # 'OWNER' or 'USER'
-
-@app.post("/DB/user_decor/link")
-def link_user_decor(link: UserDecorLink) -> int:
-    """
-    Creates a UserDecor relation row.
-    """
-    from server.database import insert_api
-    return insert_api.link_user_decor(link.UserId, link.DecorId, link.RelationType)

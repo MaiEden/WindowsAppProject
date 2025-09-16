@@ -534,6 +534,88 @@ def get_hall_by_id(hall_id: int) -> Optional[Dict[str, Any]]:
     rows = db.query(sql, (hall_id,))
     return rows[0] if rows else None
 
+def get_decor_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    sql = """
+    SELECT d.DecorId AS id,
+           d.DecorName AS title,
+           CONCAT(d.Category, COALESCE(' · ' + d.Theme, '')) AS subtitle,
+           d.Region AS region,
+           d.PhotoUrl AS photo
+    FROM dbo.UserDecor ud
+    INNER JOIN dbo.DecorOption d ON d.DecorId = ud.DecorId
+    WHERE ud.UserId = ? AND ud.RelationType = 'USER'
+    ORDER BY d.DecorName;
+    """
+    return db.query(sql, (user_id,))
+
+def get_services_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    sql = """
+    SELECT s.ServiceId AS id,
+           s.ServiceName AS title,
+           COALESCE(s.ShortDescription, s.Subcategory) AS subtitle,
+           s.Region AS region,
+           s.PhotoUrl AS photo
+    FROM dbo.UserServiceLink us
+    INNER JOIN dbo.ServiceOption s ON s.ServiceId = us.ServiceId
+    WHERE us.UserId = ? AND us.RelationType = 'USER'
+    ORDER BY s.ServiceName;
+    """
+    return db.query(sql, (user_id,))
+
+def get_halls_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    sql = """
+    SELECT h.HallId AS id,
+           h.HallName AS title,
+           h.HallType AS subtitle,
+           h.Region AS region,
+           h.PhotoUrl AS photo
+    FROM dbo.UserHall uh
+    INNER JOIN dbo.Hall h ON h.HallId = uh.HallId
+    WHERE uh.UserId = ? AND uh.RelationType = 'USER'
+    ORDER BY h.HallName;
+    """
+    return db.query(sql, (user_id,))
+
+def get_owned_items_by_user(user_id: int) -> List[Dict[str, Any]]:
+    sql = """
+    SELECT s.ServiceId AS id,
+           s.ServiceName AS title,
+           COALESCE(s.ShortDescription, s.Subcategory) AS subtitle,
+           s.Region AS region,
+           s.PhotoUrl AS photo,
+           'Service' AS pill
+    FROM dbo.UserServiceLink us
+    INNER JOIN dbo.ServiceOption s ON s.ServiceId = us.ServiceId
+    WHERE us.UserId = ? AND us.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+    UNION ALL
+
+    SELECT h.HallId AS id,
+           h.HallName AS title,
+           h.HallType AS subtitle,
+           h.Region AS region,
+           h.PhotoUrl AS photo,
+           'Hall' AS pill
+    FROM dbo.UserHall uh
+    INNER JOIN dbo.Hall h ON h.HallId = uh.HallId
+    WHERE uh.UserId = ? AND uh.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+    UNION ALL
+
+    SELECT d.DecorId AS id,
+           d.DecorName AS title,
+           CONCAT(d.Category, COALESCE(' · ' + d.Theme, '')) AS subtitle,
+           d.Region AS region,
+           d.PhotoUrl AS photo,
+           'Decor' AS pill
+    FROM dbo.UserDecor ud
+    INNER JOIN dbo.DecorOption d ON d.DecorId = ud.DecorId
+    WHERE ud.UserId = ? AND ud.RelationType IN ('OWNER','OWNED','OWNER_OF')
+
+    ORDER BY title;
+    """
+    return db.query(sql, (user_id, user_id, user_id))
+
 
 if __name__ == "__main__":
     print("decorators:"); print_table(get_decotators())

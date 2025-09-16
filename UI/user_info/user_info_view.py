@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QToolButton, QSpacerItem, QGraphicsDropShadowEffect, QGridLayout
 )
 
-# טעינת תמונות – כמו בשאר ה-Views
+# Image loading (same helper you already use)
 from server.database.image_loader import load_into
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -18,9 +18,24 @@ def _shadow(w, radius=18, x_offset=0, y_offset=6):
     eff = QGraphicsDropShadowEffect(w); eff.setBlurRadius(radius); eff.setOffset(x_offset, y_offset)
     w.setGraphicsEffect(eff)
 
+def _section_label(text: str) -> QLabel:
+    lbl = QLabel(text)
+    lbl.setObjectName("SectionLabel")
+    lbl.setStyleSheet("""
+        QLabel {
+            color: #374151;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 2px 0;
+            margin-left: 2px;
+        }
+    """)
+    return lbl
+
 
 class CompactCard(QFrame):
-    """כרטיס קומפקטי יותר עם hover effect כמו בהall_list_view"""
+    """Compact tile card used in grids."""
     clicked = Signal(int)
 
     def __init__(self, vm: Dict):
@@ -28,16 +43,16 @@ class CompactCard(QFrame):
         self.vm = vm
         self.setCursor(Qt.PointingHandCursor)
         self.setMouseTracking(True)
-        self.setMinimumSize(220, 180)  # קטן יותר מה-hall cards
+        self.setMinimumSize(220, 180)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
-        _shadow(self, radius=12, y_offset=4)  # צל קטן יותר
+        _shadow(self, radius=12, y_offset=4)
 
-        # Hover animation - כמו בהall_list_view
+        # Hover animation
         self._base_geom: Optional[QRect] = None
         self._anim = QPropertyAnimation(self, b"geometry", self)
         self._anim.setDuration(140)
         self._anim.setEasingCurve(QEasingCurve.OutCubic)
-        self._grow_px = 6  # גידול קטן יותר
+        self._grow_px = 6
 
         self._build()
 
@@ -46,9 +61,9 @@ class CompactCard(QFrame):
         lay.setContentsMargins(10, 8, 10, 10)
         lay.setSpacing(6)
 
-        # Image - קטנה יותר
+        # Image
         img = QLabel(objectName="CardImage")
-        img.setFixedHeight(100)  # נמוך יותר
+        img.setFixedHeight(100)
         img.setAlignment(Qt.AlignCenter)
 
         url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
@@ -77,7 +92,7 @@ class CompactCard(QFrame):
         lay.addWidget(subtitle)
         lay.addLayout(meta)
 
-    # Hover effects - כמו בהall_list_view
+    # Hover effects
     def enterEvent(self, e):
         if self._base_geom is None:
             self._base_geom = self.geometry()
@@ -104,8 +119,44 @@ class CompactCard(QFrame):
         super().mouseReleaseEvent(e)
 
 
+class AddNewCard(QFrame):
+    """A 'plus' card placeholder for future 'add new owned item' screen."""
+    def __init__(self):
+        super().__init__(objectName="Card")
+        self.setMinimumSize(220, 180)
+        self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        self.setCursor(Qt.PointingHandCursor)
+        _shadow(self, radius=12, y_offset=4)
+
+        lay = QVBoxLayout(self)
+        lay.setContentsMargins(10, 8, 10, 10)
+        lay.setSpacing(6)
+
+        icon = QLabel("+", alignment=Qt.AlignCenter)
+        icon.setFixedHeight(100)
+        icon.setStyleSheet("""
+            QLabel {
+                font-size: 40px;
+                color: #6b7280;
+                border: 2px dashed #d1d5db;
+                border-radius: 12px;
+                background: #fafafa;
+            }
+        """)
+
+        title = QLabel("Add new", objectName="CardTitle")
+        title.setAlignment(Qt.AlignCenter)
+        subtitle = QLabel("Owned item shortcut", objectName="CardSubtitle")
+        subtitle.setAlignment(Qt.AlignCenter)
+
+        lay.addWidget(icon)
+        lay.addWidget(title)
+        lay.addWidget(subtitle)
+        lay.addStretch(1)
+
+
 class MinimalSection(QWidget):
-    """סקשן מינימליסטי עם פס דק וגריד של כרטיסים"""
+    """Collapsible section with a clean grid of cards."""
 
     def __init__(self, title: str, count: int = 0, start_open: bool = True):
         super().__init__()
@@ -116,9 +167,9 @@ class MinimalSection(QWidget):
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(8)
 
-        # Header - פס מינימליסטי ועדין
+        # Header bar
         header = QFrame()
-        header.setFixedHeight(36)  # גובה קבוע נמוך יותר
+        header.setFixedHeight(36)
         header.setStyleSheet("""
             QFrame {
                 background: #ffffff;
@@ -135,7 +186,7 @@ class MinimalSection(QWidget):
         h.setContentsMargins(12, 8, 12, 8)
         h.setSpacing(8)
 
-        self.btn = QToolButton(text=("▼" if start_open else "►"))
+        self.btn = QToolButton(text=("∨" if start_open else ">"))
         self.btn.setCursor(Qt.PointingHandCursor)
         self.btn.setAutoRaise(True)
         self.btn.setFixedSize(20, 20)
@@ -170,16 +221,10 @@ class MinimalSection(QWidget):
         h.addWidget(self.title, 0)
         h.addStretch(1)
 
-        # Body - רק grid ללא scroll פנימי
+        # Body grid (no inner scroll)
         self.body = QWidget()
-        self.body.setStyleSheet("""
-            QWidget {
-                background: transparent;
-                border: none;
-            }
-        """)
         self.grid = QGridLayout(self.body)
-        self.grid.setContentsMargins(0, 8, 0, 0)  # רק מרווח עליון
+        self.grid.setContentsMargins(0, 8, 0, 0)
         self.grid.setHorizontalSpacing(12)
         self.grid.setVerticalSpacing(12)
 
@@ -201,8 +246,11 @@ class MinimalSection(QWidget):
             }
         """)
 
-    def set_content(self, cards: List[Dict]):
-        self._cards_cache = cards
+    def set_content(self, cards: List[Dict], *, include_add_card: bool = False):
+        self._cards_cache = cards.copy()
+        if include_add_card:
+            # Append a special marker dict; handled in _rebuild_grid
+            self._cards_cache.append({"__add_card__": True})
         self._rebuild_grid()
 
     def _rebuild_grid(self):
@@ -216,48 +264,43 @@ class MinimalSection(QWidget):
         cards = self._cards_cache
         if not cards:
             empty = QLabel("No items", alignment=Qt.AlignCenter)
-            empty.setStyleSheet("""
-                QLabel {
-                    color: #9ca3af;
-                    font-style: italic;
-                    padding: 20px;
-                    background: transparent;
-                    border: none;
-                    font-size: 14px;
-                }
-            """)
+            empty.setStyleSheet("color: #999; font-style: italic; padding: 20px;")
             self.grid.addWidget(empty, 0, 0)
             self.set_count(0)
             return
 
-        # Calculate columns based on parent width
+        # Columns based on parent width
         parent_width = self.width() if self.width() > 0 else 800
         card_width = 240
-        cols = max(1, (parent_width - 40) // card_width)  # מינוס margins
+        cols = max(1, (parent_width - 40) // card_width)
 
         row = col = 0
         for vm in cards:
-            card = CompactCard(vm)
+            if vm.get("__add_card__"):
+                card = AddNewCard()
+            else:
+                card = CompactCard(vm)
             self.grid.addWidget(card, row, col)
             col += 1
             if col >= cols:
                 row += 1
                 col = 0
 
-        # Add spacer to push cards up
+        # Spacer to push cards up
         self.grid.addItem(
             QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding),
             row + 1, 0, 1, cols
         )
 
-        self.set_count(len(cards))
+        # Do not count the add-card in the total
+        logical_count = len([c for c in cards if not c.get("__add_card__")])
+        self.set_count(logical_count)
 
     def toggle(self):
         self._open = not self._open
-        self.btn.setText("▼" if self._open else "►")
+        self.btn.setText("∨" if self._open else ">")
         self.body.setVisible(self._open)
 
-        # אם נפתח ויש כרטיסים - rebuild הgrid
         if self._open and self._cards_cache:
             QTimer.singleShot(50, self._rebuild_grid)
 
@@ -273,7 +316,7 @@ class UserInfoView(QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("User Info")
-        self.resize(1000, 700)  # גודל ברירת מחדל
+        self.resize(1000, 700)
         self._build()
         self._load_qss()
 
@@ -282,16 +325,16 @@ class UserInfoView(QWidget):
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(12)
 
-        # Top card - קומפקטי יותר
+        # Top card
         top = QFrame(objectName="Card")
-        top.setFixedHeight(100)  # גובה קבוע
+        top.setFixedHeight(100)
         _shadow(top, 12, 0, 4)
 
         tl = QHBoxLayout(top)
         tl.setContentsMargins(16, 12, 16, 12)
         tl.setSpacing(16)
 
-        # Avatar - קטן יותר
+        # Avatar
         self.avatar = QLabel("👤", alignment=Qt.AlignCenter)
         self.avatar.setFixedSize(64, 64)
         self.avatar.setStyleSheet("""
@@ -303,16 +346,15 @@ class UserInfoView(QWidget):
             }
         """)
 
-        # User info
+        # User info (name + single meta line: phone · region)
         info = QVBoxLayout()
         info.setSpacing(2)
         self.name = QLabel("", objectName="CardTitle")
-        self.phone = QLabel("", objectName="CardSubtitle")
-        self.region = QLabel("", objectName="Region")
+        # 'meta' shows phone and region on the same line
+        self.meta = QLabel("", objectName="CardSubtitle")
 
         info.addWidget(self.name)
-        info.addWidget(self.phone)
-        info.addWidget(self.region)
+        info.addWidget(self.meta)
 
         tl.addWidget(self.avatar, 0)
         tl.addLayout(info, 1)
@@ -325,18 +367,28 @@ class UserInfoView(QWidget):
         content_widget = QWidget()
         content_layout = QVBoxLayout(content_widget)
         content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(8)  # רווח קטן יותר בין הסקשנים
+        content_layout.setSpacing(10)
 
-        # Sections - מינימליסטיים
-        self.sec_decors = MinimalSection("Decorations used", start_open=True)
-        self.sec_services = MinimalSection("Services used", start_open=True)
-        self.sec_halls = MinimalSection("Halls used", start_open=True)
+        # Recently used section label
+        content_layout.addWidget(_section_label("Recently used"))
+
+        # Recently used sections
+        self.sec_decors = MinimalSection("Decorations", start_open=True)
+        self.sec_services = MinimalSection("Services", start_open=True)
+        self.sec_halls = MinimalSection("Halls", start_open=True)
 
         content_layout.addWidget(self.sec_decors)
         content_layout.addWidget(self.sec_services)
         content_layout.addWidget(self.sec_halls)
-        content_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
+        # Owned by me section label
+        content_layout.addWidget(_section_label("Owned by me"))
+
+        # Owned items (same card design). Includes a '+' add-new card at the end.
+        self.sec_owned = MinimalSection("Owned items", start_open=True)
+        content_layout.addWidget(self.sec_owned)
+
+        content_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
         main_scroll.setWidget(content_widget)
 
         root.addWidget(top, 0)
@@ -350,8 +402,9 @@ class UserInfoView(QWidget):
     # ----- Presenter API -----
     def set_user_header(self, name: str, phone: str, region: str, avatar_url: Optional[str] = None):
         self.name.setText(name or "")
-        self.phone.setText(phone or "")
-        self.region.setText(region or "")
+        # Build 'phone · region' line (hide dot when one side is missing)
+        parts = [p for p in [phone.strip() if phone else "", region.strip() if region else ""] if p]
+        self.meta.setText(" · ".join(parts))
         if avatar_url:
             load_into(self.avatar, avatar_url, placeholder=STYLE_DIR / "avatar_placeholder.png", size=QSize(64, 64))
 
@@ -363,3 +416,7 @@ class UserInfoView(QWidget):
 
     def show_hall_cards(self, items: List[Dict]):
         self.sec_halls.set_content(items)
+
+    def show_owned_cards(self, items: List[Dict]):
+        # Include a static add-new card at the end (no click handler yet)
+        self.sec_owned.set_content(items, include_add_card=True)
