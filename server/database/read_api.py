@@ -536,10 +536,10 @@ def get_hall_by_id(hall_id: int) -> Optional[Dict[str, Any]]:
 
 
 if __name__ == "__main__":
+    print("decorators:"); print_table(get_decotators())
     print("services:"); print_table(get_services())
     # Demo printing of queries
     print(get_decor_cards())
-    print("decorators:"); print_table(get_decotators())
     print(get_user_by_user_name("Noa Hadad"))
     print("Users:"); print_table(get_users())
     print("\nEvents:"); print_table(get_events())

@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 import server.database.read_api as read_api
 from server.database import insert_api
 from server.external_services.cordinats.geocoding_client import get_address
+from pydantic import BaseModel
+
 app = FastAPI(title="Events Backend (Demo)")
 
 # מאפשר קריאות מכל מקור (בדמו)
@@ -110,3 +112,46 @@ def get_hall(hall_id: int, resolveAddress: bool = True):
     return row
 
 
+# ---------- Add Decor (Create) ----------
+class DecorCreate(BaseModel):
+    DecorName: str
+    Category: str
+    Theme: Optional[str] = None
+    Description: Optional[str] = None
+    Indoor: bool = True
+    RequiresElectricity: bool = False
+    PriceSmall: Optional[float] = None
+    PriceMedium: Optional[float] = None
+    PriceLarge: Optional[float] = None
+    DeliveryFee: Optional[float] = None
+    Region: Optional[str] = None
+    VendorName: Optional[str] = None
+    ContactPhone: Optional[str] = None
+    ContactEmail: Optional[str] = None
+    PhotoUrl: Optional[str] = None
+    LeadTimeDays: Optional[int] = None
+    CancellationPolicy: Optional[str] = None
+    Available: bool = True
+
+@app.post("/DB/decors/create")
+def create_decor(item: DecorCreate) -> int:
+    """
+    Creates a new decor option. Returns DecorId (int).
+    """
+    from server.database import insert_api  # local import to match your structure
+    return insert_api.add_decor_option(item.dict())
+
+
+# ---------- User <-> Decor link ----------
+class UserDecorLink(BaseModel):
+    UserId: int
+    DecorId: int
+    RelationType: str = "OWNER"  # 'OWNER' or 'USER'
+
+@app.post("/DB/user_decor/link")
+def link_user_decor(link: UserDecorLink) -> int:
+    """
+    Creates a UserDecor relation row.
+    """
+    from server.database import insert_api
+    return insert_api.link_user_decor(link.UserId, link.DecorId, link.RelationType)
