@@ -3,10 +3,10 @@ AddDecorPresenter
 -----------------
 - Validates form input and returns a field->error map.
 - Shows an error summary + inline field errors + red highlight.
-- Calls the model for: ensure owner, create decor, link owner.
+- Calls the model for: create decor, link to current user, optional default owner.
 """
 
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, Tuple
 from PySide6.QtCore import QObject
 from add_decor_model import AddDecorModel
 
@@ -17,10 +17,12 @@ CATEGORIES = [
 
 
 class AddDecorPresenter(QObject):
-    def __init__(self, model: AddDecorModel, view) -> None:
+    def __init__(self, model: AddDecorModel, view, current_username: str, on_success=None) -> None:
         super().__init__()
         self.model = model
         self.view = view
+        self.current_username = current_username
+        self.on_success = on_success
         self._connect()
 
     def _connect(self):
@@ -53,9 +55,13 @@ class AddDecorPresenter(QObject):
             errors["Category"] = "Category is required."
 
         # At least one price > 0
-        ps = float(data.get("PriceSmall") or 0)
-        pm = float(data.get("PriceMedium") or 0)
-        pl = float(data.get("PriceLarge") or 0)
+        try:
+            ps = float(data.get("PriceSmall") or 0)
+            pm = float(data.get("PriceMedium") or 0)
+            pl = float(data.get("PriceLarge") or 0)
+        except Exception:
+            ps = pm = pl = 0.0
+
         if max(ps, pm, pl) <= 0:
             msg = "Enter at least one positive price (small/medium/large)."
             errors["PriceSmall"] = msg
@@ -91,25 +97,46 @@ class AddDecorPresenter(QObject):
             data = self.view.collect_form()
             errors = self._validate(data)
             if errors:
-                # Inline errors + summary banner
                 self.view.apply_errors(errors)
                 self.view.show_error_summary("Validation failed. Please fix the highlighted fields.")
                 return
 
-            # Ensure owner (MVP default owner: "Noa Hadad")
-            owner_name = self.model.default_owner_username
-            user = self.model.get_user_by_name(owner_name)
-            if not user:
-                user_id = self.model.ensure_user("050-1111111", owner_name, "hash:noa", "Rehovot")
-            else:
-                user_id = int(user.get("UserId"))
+            # 1) find current user
+            u = self.model.get_user_by_name(self.current_username)
+            if not u or not u.get("UserId"):
+                raise RuntimeError("User not found or not logged in.")
+            current_user_id = int(u["UserId"])
 
-            # Create decor + link as OWNER
+            # 2) optional default owner
+            owner_id = None
+            default_owner_username = getattr(self.model, "default_owner_username", None)
+            if default_owner_username:
+                owner = self.model.get_user_by_name(default_owner_username)
+                if owner and owner.get("UserId"):
+                    owner_id = int(owner["UserId"])
+
+            # 3) create decor
             decor_id = self.model.create_decor(data)
-            self.model.link_owner(user_id, decor_id, "OWNER")
 
-            self.view.show_success("Decoration created and linked to owner.")
-            self.view.reset_form()
+            # 4) link to current user as USER
+            linked = False
+            if hasattr(self.model, "link_user"):
+                self.model.link_user(current_user_id, decor_id)
+                linked = True
+            if not linked:
+                # graceful fallback if model has only link_owner(relation)
+                self.model.link_owner(current_user_id, decor_id)
+
+            # 5) optional: link default owner as OWNER
+            if owner_id:
+                self.model.link_owner(owner_id, decor_id, "OWNER")
+
+            # 6) success + navigate back
+            self.view.show_success("Decoration created and linked to user.")
+            if callable(self.on_success):
+                self.on_success()
+            else:
+                self.view.reset_form()
 
         except Exception as e:
             self.view.show_error_summary(str(e))

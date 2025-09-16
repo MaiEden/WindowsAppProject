@@ -10,6 +10,8 @@ Notes:
 """
 
 from __future__ import annotations
+
+from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
 
 from PySide6.QtCore import Qt, Signal
@@ -75,6 +77,8 @@ class AddDecorView(QWidget):
         self.indoor = QCheckBox("Indoor use")
         self.indoor.setChecked(True)
         self.requires_electricity = QCheckBox("Requires electricity")
+
+        self._load_local_qss()
 
         # Prices
         def mk_price():
@@ -279,3 +283,14 @@ class AddDecorView(QWidget):
             self._set_error_state(w, True)
             err_label.setText(msg)
             err_label.setVisible(True)
+
+    def _load_local_qss(self):
+        # נטען את add_decor.qss שיושב לצד הקובץ הזה
+        qss_path = Path(__file__).resolve().parent / "add_decor.qss"
+        if qss_path.exists():
+            css = qss_path.read_text(encoding="utf-8")
+            # מומלץ לתת שם אובייקט לשורש – לא חובה, אבל טוב לספציפיות
+            if not self.objectName():
+                self.setObjectName("add-decor-root")
+            self.setStyleSheet(css)
+

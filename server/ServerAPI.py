@@ -157,3 +157,17 @@ def create_decor(item: DecorCreate) -> int:
     """
     from server.database import insert_api  # local import to match your structure
     return insert_api.add_decor_option(item.dict())
+
+# ---------- User <-> Decor link ----------
+class UserDecorLink(BaseModel):
+    UserId: int
+    DecorId: int
+    RelationType: str = "OWNER"  # 'OWNER' or 'USER'
+
+@app.post("/DB/user_decor/link")
+def link_user_decor(link: UserDecorLink) -> int:
+    """
+    Creates a UserDecor relation row.
+    """
+    from server.database import insert_api
+    return insert_api.link_user_decor(link.UserId, link.DecorId, link.RelationType)

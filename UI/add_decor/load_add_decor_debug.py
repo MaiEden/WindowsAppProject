@@ -24,7 +24,7 @@ def main():
 
     view = AddDecorView()
     model = AddDecorModel(default_owner_username="Noa Hadad")
-    presenter = AddDecorPresenter(model, view)
+    presenter = AddDecorPresenter(model, view, current_username="Noa hadad")
     presenter.start()
     view.resize(640, 820)
     view.show()

@@ -1,4 +1,3 @@
-# user_info_view.py
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -120,6 +119,7 @@ class CompactCard(QFrame):
 
 
 class AddNewCard(QFrame):
+    clicked = Signal()
     """A 'plus' card placeholder for future 'add new owned item' screen."""
     def __init__(self):
         super().__init__(objectName="Card")
@@ -154,9 +154,15 @@ class AddNewCard(QFrame):
         lay.addWidget(subtitle)
         lay.addStretch(1)
 
+    def mouseReleaseEvent(self, e):
+        if e.button() == Qt.LeftButton:
+            self.clicked.emit()
+        super().mouseReleaseEvent(e)
+
 
 class MinimalSection(QWidget):
     """Collapsible section with a clean grid of cards."""
+    addNewRequested = Signal()
 
     def __init__(self, title: str, count: int = 0, start_open: bool = True):
         super().__init__()
@@ -278,6 +284,8 @@ class MinimalSection(QWidget):
         for vm in cards:
             if vm.get("__add_card__"):
                 card = AddNewCard()
+                # NEW: route the click of the '+' card to the section signal
+                card.clicked.connect(self.addNewRequested)
             else:
                 card = CompactCard(vm)
             self.grid.addWidget(card, row, col)
@@ -312,6 +320,7 @@ class MinimalSection(QWidget):
 
 class UserInfoView(QWidget):
     refreshRequested = Signal()
+    addDecorClicked = Signal()
 
     def __init__(self):
         super().__init__()
@@ -394,6 +403,9 @@ class UserInfoView(QWidget):
         root.addWidget(top, 0)
         root.addWidget(main_scroll, 1)
 
+        # NEW: click on the '+' card in Owned -> bubble up to the view signal
+        self.sec_owned.addNewRequested.connect(self.addDecorClicked)
+
     def _load_qss(self):
         qss_path = STYLE_DIR / "list_style.qss"
         if qss_path.exists():
@@ -418,5 +430,5 @@ class UserInfoView(QWidget):
         self.sec_halls.set_content(items)
 
     def show_owned_cards(self, items: List[Dict]):
-        # Include a static add-new card at the end (no click handler yet)
+        # Include a static add-new card at the end and keep it clickable
         self.sec_owned.set_content(items, include_add_card=True)
