@@ -385,7 +385,6 @@ def main():
         "plaining the best event.pdf",
         "Winter bachelorette party.pdf",
         "צק ליסט למסיבת רווקות מושלמת - Google Docs.pdf",
-        "Rag Assistant Style & Behavior Guide (enthusiastic, Caring, On-point).pdf",
         "טיפים לאירגון אירועים.pdf",
         "טיפים לחתונות.pdf",
         "טיפים לימי הולדת.pdf",
