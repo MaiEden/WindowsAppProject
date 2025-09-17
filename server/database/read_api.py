@@ -617,6 +617,102 @@ def get_owned_items_by_user(user_id: int) -> List[Dict[str, Any]]:
     return db.query(sql, (user_id, user_id, user_id))
 
 
+# --- NEW: decor prices with computed MidPrice ---
+from typing import Any  # אם כבר קיים למעלה – אפשר להסיר שורה זו
+
+def get_decor_prices(
+        search: Optional[str] = None,
+        category: Optional[str] = None,
+        available: Optional[bool] = None,
+        region: Optional[str] = None,
+        order_by: str = "MidPrice",   # MidPrice | DecorName | Region | Category
+        ascending: bool = True,
+        limit: Optional[int] = None,
+        offset: Optional[int] = None,
+) -> List[Dict[str, Any]]:
+    """
+    מחזיר רשימת קישוטים עם מחירי S/M/L ושדה MidPrice מחושב כך:
+      - אם PriceMedium קיים -> זה הערך
+      - אחרת ממוצע PriceSmall ו-PriceLarge אם שניהם קיימים
+      - אחרת המחיר היחיד שקיים מבין Small/Large
+
+    כולל מסננים (קטגוריה/אזור/זמינות/חיפוש), מיון ו-Paging אופציונלי.
+    השמות תואמים לטבלת dbo.DecorOption ולשדות המחיר בסכמה.  #
+    """
+    order_map = {
+        "DecorName": "d.DecorName",
+        "Region":    "d.Region",
+        "Category":  "d.Category",
+        "MidPrice":  "mp.MidPrice",
+    }
+    order_col = order_map.get(order_by, "mp.MidPrice")
+    order_dir = "ASC" if ascending else "DESC"
+
+    sql = f"""
+    SELECT
+        d.DecorId,
+        d.DecorName,
+        d.Category,
+        d.Theme,
+        d.Region,
+        d.Available,
+        d.PhotoUrl,
+        d.PriceSmall,
+        d.PriceMedium,
+        d.PriceLarge,
+        /* MidPrice מחושב לפי הכללים למעלה */
+        COALESCE(
+            d.PriceMedium,
+            CASE
+              WHEN d.PriceSmall IS NOT NULL AND d.PriceLarge IS NOT NULL
+                   THEN (d.PriceSmall + d.PriceLarge) / 2
+              ELSE COALESCE(d.PriceSmall, d.PriceLarge)
+            END
+        ) AS MidPrice
+    FROM dbo.DecorOption AS d
+    OUTER APPLY (
+        SELECT COALESCE(
+            d.PriceMedium,
+            CASE
+              WHEN d.PriceSmall IS NOT NULL AND d.PriceLarge IS NOT NULL
+                   THEN (d.PriceSmall + d.PriceLarge) / 2
+              ELSE COALESCE(d.PriceSmall, d.PriceLarge)
+            END
+        ) AS MidPrice
+    ) AS mp
+    WHERE 1=1
+    """
+    params: List[Any] = []
+
+    if category and category not in ("All", "All categories", ""):
+        sql += " AND d.Category = ?"
+        params.append(category)
+
+    if region and region not in ("All", "All regions", ""):
+        sql += " AND d.Region = ?"
+        params.append(region)
+
+    if available is True:
+        sql += " AND d.Available = 1"
+    elif available is False:
+        sql += " AND d.Available = 0"
+
+    if search:
+        like = f"%{search}%"
+        sql += " AND (d.DecorName LIKE ? OR d.Description LIKE ? OR d.Theme LIKE ?)"
+        params.extend([like, like, like])
+
+    sql += f" ORDER BY {order_col} {order_dir}"
+
+    if limit is not None:
+        off = int(offset or 0)
+        lim = int(limit)
+        sql += " OFFSET ? ROWS FETCH NEXT ? ROWS ONLY"
+        params.extend([off, lim])
+
+    return db.query(sql, params)
+
+
 if __name__ == "__main__":
     print("decorators:"); print_table(get_decotators())
     print("services:"); print_table(get_services())

@@ -1,11 +1,11 @@
+# user_info_view.py
 from pathlib import Path
 from typing import List, Dict, Optional
 
-from PySide6.QtCore import Qt, QSize, Signal, QTimer
+from PySide6.QtCore import Qt, QSize, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QFrame,
-    QSizePolicy, QToolButton, QSpacerItem, QGraphicsDropShadowEffect, QGridLayout,
-    QAbstractScrollArea
+    QSizePolicy, QToolButton, QSpacerItem, QGraphicsDropShadowEffect, QGridLayout
 )
 
 # Image loading (same helper you already use)
@@ -13,45 +13,47 @@ from server.database.image_loader import load_into
 
 BASE_DIR = Path(__file__).resolve().parent
 STYLE_DIR = BASE_DIR.parent / "style&icons"
-LOCAL_QSS = BASE_DIR / "user_info_view.qss"
-
-# -------------------------------------------
-# Visual helpers (still here, but we don't use shadows on cards anymore)
-# -------------------------------------------
 
 def _shadow(w, radius=18, x_offset=0, y_offset=6):
     eff = QGraphicsDropShadowEffect(w); eff.setBlurRadius(radius); eff.setOffset(x_offset, y_offset)
     w.setGraphicsEffect(eff)
 
-
 def _section_label(text: str) -> QLabel:
-    """Lightweight label; QSS will style via #SectionLabel."""
     lbl = QLabel(text)
     lbl.setObjectName("SectionLabel")
-    # no inline stylesheet here — let QSS control size/weight/colors
+    lbl.setStyleSheet("""
+        QLabel {
+            color: #374151;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            padding: 2px 0;
+            margin-left: 2px;
+        }
+    """)
     return lbl
 
 
-# -------------------------------------------
-# Cards
-# -------------------------------------------
-
 class CompactCard(QFrame):
-    """Compact tile card used in grids. No geometry animation and **no shadows** (styled via QSS)."""
+    """Compact tile card used in grids."""
     clicked = Signal(int)
-
-    # ⬇⬇⬇ Bigger default size so text won't overlap the image
-    CARD_W = 360
-    CARD_H = 300
 
     def __init__(self, vm: Dict):
         super().__init__(objectName="Card")
         self.vm = vm
         self.setCursor(Qt.PointingHandCursor)
         self.setMouseTracking(True)
-        # --- Uniform card size (width x height) ---
-        self.setFixedSize(self.CARD_W, self.CARD_H)
+        self.setMinimumSize(220, 180)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
+        _shadow(self, radius=12, y_offset=4)
+
+        # Hover animation
+        self._base_geom: Optional[QRect] = None
+        self._anim = QPropertyAnimation(self, b"geometry", self)
+        self._anim.setDuration(140)
+        self._anim.setEasingCurve(QEasingCurve.OutCubic)
+        self._grow_px = 6
+
         self._build()
 
     def _build(self):
@@ -61,16 +63,14 @@ class CompactCard(QFrame):
 
         # Image
         img = QLabel(objectName="CardImage")
-        # ⬇⬇⬇ Higher image to match the taller card
-        img.setFixedHeight(180)
+        img.setFixedHeight(100)
         img.setAlignment(Qt.AlignCenter)
 
         url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        # ⬇⬇⬇ Ask loader for a larger pixmap so it looks crisp in the taller slot
-        load_into(img, url, placeholder=STYLE_DIR / "placeholder_card.png", size=QSize(340, 180))
+        load_into(img, url, placeholder=STYLE_DIR / "placeholder_card.png", size=QSize(280, 100))
 
         # Title
-        title = QLabel(self.vm.get("title") or self.vm.get("name") or "", objectName="CardTitle")
+        title = QLabel(self.vm.get("title", ""), objectName="CardTitle")
         title.setWordWrap(True)
 
         # Subtitle
@@ -81,8 +81,7 @@ class CompactCard(QFrame):
         meta = QHBoxLayout()
         region = QLabel(self.vm.get("region") or "", objectName="Region")
         pill = QLabel(self.vm.get("pill", ""), objectName="Pill")
-        if self.vm.get("pill"):
-            pill.setProperty("ok", True)
+        pill.setProperty("ok", True)
 
         meta.addWidget(region)
         meta.addStretch(1)
@@ -93,6 +92,27 @@ class CompactCard(QFrame):
         lay.addWidget(subtitle)
         lay.addLayout(meta)
 
+    # Hover effects
+    def enterEvent(self, e):
+        if self._base_geom is None:
+            self._base_geom = self.geometry()
+        g = self._base_geom
+        grow = self._grow_px
+        target = QRect(g.x() - grow // 2, g.y() - grow // 2, g.width() + grow, g.height() + grow)
+        self._anim.stop()
+        self._anim.setStartValue(self.geometry())
+        self._anim.setEndValue(target)
+        self._anim.start()
+        super().enterEvent(e)
+
+    def leaveEvent(self, e):
+        if self._base_geom is not None:
+            self._anim.stop()
+            self._anim.setStartValue(self.geometry())
+            self._anim.setEndValue(self._base_geom)
+            self._anim.start()
+        super().leaveEvent(e)
+
     def mouseReleaseEvent(self, e):
         if e.button() == Qt.LeftButton:
             self.clicked.emit(int(self.vm.get("id") or -1))
@@ -100,26 +120,29 @@ class CompactCard(QFrame):
 
 
 class AddNewCard(QFrame):
-    clicked = Signal()
-    """A '+' card placeholder for future 'add new owned item' screen. No shadow (QSS only)."""
-    CARD_W = CompactCard.CARD_W
-    CARD_H = CompactCard.CARD_H
-
+    """A 'plus' card placeholder for future 'add new owned item' screen."""
     def __init__(self):
         super().__init__(objectName="Card")
-        # --- Uniform card size to match CompactCard ---
-        self.setFixedSize(self.CARD_W, self.CARD_H)
+        self.setMinimumSize(220, 180)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         self.setCursor(Qt.PointingHandCursor)
+        _shadow(self, radius=12, y_offset=4)
 
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 8, 10, 10)
         lay.setSpacing(6)
 
         icon = QLabel("+", alignment=Qt.AlignCenter)
-        # ⬇⬇⬇ Match the card image height for visual consistency
-        icon.setFixedHeight(180)
-        icon.setObjectName("AddIcon")
+        icon.setFixedHeight(100)
+        icon.setStyleSheet("""
+            QLabel {
+                font-size: 40px;
+                color: #6b7280;
+                border: 2px dashed #d1d5db;
+                border-radius: 12px;
+                background: #fafafa;
+            }
+        """)
 
         title = QLabel("Add new", objectName="CardTitle")
         title.setAlignment(Qt.AlignCenter)
@@ -131,41 +154,33 @@ class AddNewCard(QFrame):
         lay.addWidget(subtitle)
         lay.addStretch(1)
 
-    def mouseReleaseEvent(self, e):
-        if e.button() == Qt.LeftButton:
-            self.clicked.emit()
-        super().mouseReleaseEvent(e)
-
-
-# -------------------------------------------
-# MinimalSection: collapsible area with responsive grid
-# -------------------------------------------
 
 class MinimalSection(QWidget):
-    """Collapsible section with a clean grid of cards.
-
-    Stability tweaks:
-    - Rebuild grid only if the column count changes or on explicit force.
-    - Preserve scroll position across rebuilds.
-    - Align grid to the **left** to avoid centered last rows.
-    - No internal Expanding spacers.
-    """
-
-    addNewRequested = Signal()
+    """Collapsible section with a clean grid of cards."""
 
     def __init__(self, title: str, count: int = 0, start_open: bool = True):
         super().__init__()
         self._open = start_open
         self._cards_cache: List[Dict] = []
-        self._last_cols: Optional[int] = None
 
         root = QVBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(8)
 
-        # Header bar (no inline styles — QSS will control look)
+        # Header bar
         header = QFrame()
         header.setFixedHeight(36)
+        header.setStyleSheet("""
+            QFrame {
+                background: #ffffff;
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+            }
+            QFrame:hover {
+                border-color: #d1d5db;
+                background: #f9fafb;
+            }
+        """)
 
         h = QHBoxLayout(header)
         h.setContentsMargins(12, 8, 12, 8)
@@ -174,10 +189,33 @@ class MinimalSection(QWidget):
         self.btn = QToolButton(text=("∨" if start_open else ">"))
         self.btn.setCursor(Qt.PointingHandCursor)
         self.btn.setAutoRaise(True)
-        self.btn.setFixedSize(24, 24)
+        self.btn.setFixedSize(20, 20)
+        self.btn.setStyleSheet("""
+            QToolButton {
+                border: none;
+                background: transparent;
+                color: #6b7280;
+                font-size: 12px;
+                font-weight: bold;
+            }
+            QToolButton:hover {
+                color: #374151;
+                background: #f3f4f6;
+                border-radius: 4px;
+            }
+        """)
         self.btn.clicked.connect(self.toggle)
 
         self.title = QLabel(f"{title} · {count}")
+        self.title.setStyleSheet("""
+            QLabel {
+                color: #374151;
+                font-size: 14px;
+                font-weight: 600;
+                border: none;
+                background: transparent;
+            }
+        """)
 
         h.addWidget(self.btn, 0)
         h.addWidget(self.title, 0)
@@ -189,87 +227,82 @@ class MinimalSection(QWidget):
         self.grid.setContentsMargins(0, 8, 0, 0)
         self.grid.setHorizontalSpacing(12)
         self.grid.setVerticalSpacing(12)
-        self.grid.setAlignment(Qt.AlignLeft | Qt.AlignTop)  # <<< left/top alignment
 
         root.addWidget(header)
         root.addWidget(self.body)
 
         self.body.setVisible(self._open)
 
-    # ----- public API -----
     def set_count(self, n: int):
         txt = self.title.text().split("·")[0].strip()
         self.title.setText(f"{txt} · {n}")
+        self.title.setStyleSheet("""
+            QLabel {
+                color: #374151;
+                font-size: 14px;
+                font-weight: 600;
+                border: none;
+                background: transparent;
+            }
+        """)
 
     def set_content(self, cards: List[Dict], *, include_add_card: bool = False):
-        self._cards_cache = cards.copy() if cards else []
+        self._cards_cache = cards.copy()
         if include_add_card:
+            # Append a special marker dict; handled in _rebuild_grid
             self._cards_cache.append({"__add_card__": True})
-        self._rebuild_grid(force=True)
+        self._rebuild_grid()
 
-    # ----- internal helpers -----
-    def _calc_cols(self) -> int:
-        parent_width = self.body.width() or self.width() or 800
-        card_width = CompactCard.CARD_W  # keep in sync with card fixed width
-        return max(1, (parent_width - 40) // card_width)
-
-    def _find_scroll_area(self) -> Optional[QAbstractScrollArea]:
-        p = self.parent()
-        while p is not None and not isinstance(p, QAbstractScrollArea):
-            p = p.parent()
-        return p
-
-    def _clear_grid(self) -> None:
+    def _rebuild_grid(self):
+        # Clear existing
         while self.grid.count():
             item = self.grid.takeAt(0)
-            w = item.widget()
-            if w is not None:
-                w.setParent(None)
-                w.deleteLater()
+            widget = item.widget()
+            if widget:
+                widget.setParent(None)
 
-    def _rebuild_grid(self, force: bool = False):
-        cols = self._calc_cols()
-        if not force and self._last_cols == cols:
-            logical_count = len([c for c in self._cards_cache if not c.get("__add_card__")])
-            self.set_count(logical_count)
+        cards = self._cards_cache
+        if not cards:
+            empty = QLabel("No items", alignment=Qt.AlignCenter)
+            empty.setStyleSheet("color: #999; font-style: italic; padding: 20px;")
+            self.grid.addWidget(empty, 0, 0)
+            self.set_count(0)
             return
-        self._last_cols = cols
 
-        sa = self._find_scroll_area()
-        vbar = sa.verticalScrollBar() if sa else None
-        old_pos = vbar.value() if vbar else None
-
-        self.body.setUpdatesEnabled(False)
-        self._clear_grid()
+        # Columns based on parent width
+        parent_width = self.width() if self.width() > 0 else 800
+        card_width = 240
+        cols = max(1, (parent_width - 40) // card_width)
 
         row = col = 0
-        logical_count = 0
-        for vm in self._cards_cache:
+        for vm in cards:
             if vm.get("__add_card__"):
                 card = AddNewCard()
-                card.clicked.connect(self.addNewRequested)
             else:
                 card = CompactCard(vm)
-                logical_count += 1
-
             self.grid.addWidget(card, row, col)
             col += 1
             if col >= cols:
                 row += 1
                 col = 0
 
-        self.set_count(logical_count)
-        self.body.setUpdatesEnabled(True)
+        # Spacer to push cards up
+        self.grid.addItem(
+            QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding),
+            row + 1, 0, 1, cols
+        )
 
-        if vbar is not None and old_pos is not None:
-            QTimer.singleShot(0, lambda: vbar.setValue(old_pos))
+        # Do not count the add-card in the total
+        logical_count = len([c for c in cards if not c.get("__add_card__")])
+        self.set_count(logical_count)
 
     def toggle(self):
         self._open = not self._open
         self.btn.setText("∨" if self._open else ">")
         self.body.setVisible(self._open)
+
         if self._open and self._cards_cache:
-            QTimer.singleShot(50, lambda: self._rebuild_grid(force=True))
+            QTimer.singleShot(50, self._rebuild_grid)
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
@@ -277,13 +310,8 @@ class MinimalSection(QWidget):
             QTimer.singleShot(50, self._rebuild_grid)
 
 
-# -------------------------------------------
-# UserInfoView: the full page
-# -------------------------------------------
-
 class UserInfoView(QWidget):
     refreshRequested = Signal()
-    addDecorClicked = Signal()
 
     def __init__(self):
         super().__init__()
@@ -292,10 +320,89 @@ class UserInfoView(QWidget):
         self._build()
         self._load_qss()
 
-    # ---------- public API (used by presenter) ----------
+    def _build(self):
+        root = QVBoxLayout(self)
+        root.setContentsMargins(12, 12, 12, 12)
+        root.setSpacing(12)
 
+        # Top card
+        top = QFrame(objectName="Card")
+        top.setFixedHeight(100)
+        _shadow(top, 12, 0, 4)
+
+        tl = QHBoxLayout(top)
+        tl.setContentsMargins(16, 12, 16, 12)
+        tl.setSpacing(16)
+
+        # Avatar
+        self.avatar = QLabel("👤", alignment=Qt.AlignCenter)
+        self.avatar.setFixedSize(64, 64)
+        self.avatar.setStyleSheet("""
+            QLabel { 
+                border-radius: 32px; 
+                background: #f5f5f5; 
+                font-size: 28px; 
+                border: 2px solid #e0e0e0;
+            }
+        """)
+
+        # User info (name + single meta line: phone · region)
+        info = QVBoxLayout()
+        info.setSpacing(2)
+        self.name = QLabel("", objectName="CardTitle")
+        # 'meta' shows phone and region on the same line
+        self.meta = QLabel("", objectName="CardSubtitle")
+
+        info.addWidget(self.name)
+        info.addWidget(self.meta)
+
+        tl.addWidget(self.avatar, 0)
+        tl.addLayout(info, 1)
+
+        # Main scroll area
+        main_scroll = QScrollArea()
+        main_scroll.setWidgetResizable(True)
+        main_scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+
+        content_widget = QWidget()
+        content_layout = QVBoxLayout(content_widget)
+        content_layout.setContentsMargins(0, 0, 0, 0)
+        content_layout.setSpacing(10)
+
+        # Recently used section label
+        content_layout.addWidget(_section_label("Recently used"))
+
+        # Recently used sections
+        self.sec_decors = MinimalSection("Decorations", start_open=True)
+        self.sec_services = MinimalSection("Services", start_open=True)
+        self.sec_halls = MinimalSection("Halls", start_open=True)
+
+        content_layout.addWidget(self.sec_decors)
+        content_layout.addWidget(self.sec_services)
+        content_layout.addWidget(self.sec_halls)
+
+        # Owned by me section label
+        content_layout.addWidget(_section_label("Owned by me"))
+
+        # Owned items (same card design). Includes a '+' add-new card at the end.
+        self.sec_owned = MinimalSection("Owned items", start_open=True)
+        content_layout.addWidget(self.sec_owned)
+
+        content_layout.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
+        main_scroll.setWidget(content_widget)
+
+        root.addWidget(top, 0)
+        root.addWidget(main_scroll, 1)
+
+    def _load_qss(self):
+        qss_path = STYLE_DIR / "list_style.qss"
+        if qss_path.exists():
+            self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
+
+    # ----- Presenter API -----
     def set_user_header(self, name: str, phone: str, region: str, avatar_url: Optional[str] = None):
         self.name.setText(name or "")
+        # Build 'phone · region' line (hide dot when one side is missing)
         parts = [p for p in [phone.strip() if phone else "", region.strip() if region else ""] if p]
         self.meta.setText(" · ".join(parts))
         if avatar_url:
@@ -311,71 +418,5 @@ class UserInfoView(QWidget):
         self.sec_halls.set_content(items)
 
     def show_owned_cards(self, items: List[Dict]):
-        # Include a static add-new card at the end and keep it clickable
+        # Include a static add-new card at the end (no click handler yet)
         self.sec_owned.set_content(items, include_add_card=True)
-
-    # ---------- build UI ----------
-
-    def _build(self) -> None:
-        # Scroll area shell
-        scroll = QScrollArea()
-        scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QFrame.NoFrame)
-
-        content = QWidget()
-        scroll.setWidget(content)
-
-        root = QVBoxLayout(self)
-        root.setContentsMargins(0, 0, 0, 0)
-        root.setSpacing(0)
-        root.addWidget(scroll)
-
-        lay = QVBoxLayout(content)
-        lay.setContentsMargins(16, 16, 16, 16)
-        lay.setSpacing(16)
-
-        # Header (no shadow; styled by QSS as #TopHeader)
-        top = QFrame(objectName="TopHeader")
-        tl = QHBoxLayout(top)
-        tl.setContentsMargins(16, 12, 16, 12)
-        tl.setSpacing(16)
-
-        self.avatar = QLabel("👤", alignment=Qt.AlignCenter)
-        self.avatar.setFixedSize(64, 64)
-        self.avatar.setStyleSheet("border-radius: 32px; background: #e5e7eb; font-size: 28px;")
-
-        info = QVBoxLayout()
-        info.setSpacing(2)
-        self.name = QLabel("", objectName="HeaderName")
-        self.meta = QLabel("", objectName="HeaderMeta")
-        info.addWidget(self.name)
-        info.addWidget(self.meta)
-
-        tl.addWidget(self.avatar, 0)
-        tl.addLayout(info, 1)
-
-        lay.addWidget(top)
-
-        # Sections
-        lay.addWidget(_section_label("Recently used"))
-        self.sec_decors = MinimalSection("Decorations", start_open=True)
-        self.sec_services = MinimalSection("Services", start_open=True)
-        self.sec_halls = MinimalSection("Halls", start_open=True)
-        lay.addWidget(self.sec_decors)
-        lay.addWidget(self.sec_services)
-        lay.addWidget(self.sec_halls)
-
-        lay.addWidget(_section_label("Owned by me"))
-        self.sec_owned = MinimalSection("Owned items", start_open=True)
-        lay.addWidget(self.sec_owned)
-
-        # Page-level spacer only
-        lay.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
-
-        # '+' card signal bubbling
-        self.sec_owned.addNewRequested.connect(self.addDecorClicked)
-
-    def _load_qss(self):
-        # Load a QSS that styles ONLY this view subtree (scoped via self.setStyleSheet)
-        if LOCAL_QSS.exists():
-            self.setStyleSheet(LOCAL_QSS.read_text(encoding="utf-8"))

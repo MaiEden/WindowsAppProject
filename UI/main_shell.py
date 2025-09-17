@@ -1,6 +1,8 @@
+# ============================
+# File: main_shell.py  (Halls + Services + Decors with Details)
+# ============================
 import sys
 from pathlib import Path
-from typing import Optional, List, Dict  # ← שימוש ב-typing עבור 3.8
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QPixmap, QIcon
 from PySide6.QtWidgets import (
@@ -18,7 +20,6 @@ for p in [
     APP_BASE / "style&icons",
     APP_BASE / "agent",
     APP_BASE / "user_info",
-    APP_BASE / "add_decor",   # <- ensure add_decor is on path if needed
 ]:
     sys.path.append(str(p))
 
@@ -35,7 +36,7 @@ from decorator_list.decor_list_view import DecorListView
 from decorator_list.decor_list_model import DecorListModel
 from decorator_list.decor_list_presenter import DecorListPresenter
 
-# ---------- Details ----------
+# ---------- Details (NEW) ----------
 # Halls
 from halls_list.hall_details_view import HallDetailsView
 from halls_list.hall_details_model import HallDetailsModel
@@ -57,12 +58,12 @@ from user_info.user_info_view import UserInfoView
 from user_info.user_info_model import UserInfoModel
 from user_info.user_info_presenter import UserInfoPresenter
 
-# --- Add Decor screen (imports) ---
-from UI.add_decor.add_decor_view import AddDecorView
-from UI.add_decor.add_decor_model import AddDecorModel
-from UI.add_decor.add_decor_presenter import AddDecorPresenter
+# Decor price chart (MVP)
+from UI.decor_price.decor_price_view import DecorPriceView
+from UI.decor_price.decor_price_model import DecorPriceModel
+from UI.decor_price.decor_price_presenter import DecorPricePresenter
 
-
+# ---------- Helpers ----------
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
     """Round, ghost-style icon button using a unicode glyph (e.g. ◀ ▶)."""
     b = QToolButton()
@@ -85,6 +86,7 @@ def circle_icon_button(char: str, tooltip: str) -> QToolButton:
     return b
 
 
+# ---------- AppWindow ----------
 class AppWindow(QMainWindow):
     """Top-level window that owns a stack of pages (login / signup / shell)."""
     def __init__(self):
@@ -95,18 +97,17 @@ class AppWindow(QMainWindow):
 
         self._stack = QStackedWidget()
         self.setCentralWidget(self._stack)
-        self._pages: Dict[str, QWidget] = {}
-        self._keepers: List[object] = []   # keep refs (presenters/views) to avoid GC
-        self._shell = None  # type: Optional[MainShell]
+        self._pages: dict[str, QWidget] = {}
+        self._keepers: list[object] = []   # keep refs (presenters/views) to avoid GC
+        self._shell: MainShell | None = None
 
-    def keep(self, *objs) -> None:
-        self._keepers.extend(objs)
+    def keep(self, *objs): self._keepers.extend(objs)
 
-    def add_page(self, name: str, widget: QWidget) -> None:
+    def add_page(self, name: str, widget: QWidget):
         self._pages[name] = widget
         self._stack.addWidget(widget)
 
-    def set_shell(self, shell: "MainShell") -> None:
+    def set_shell(self, shell: "MainShell"):
         if getattr(self, "_shell", None):
             self._stack.removeWidget(self._shell)
             self._shell.deleteLater()
@@ -114,12 +115,13 @@ class AppWindow(QMainWindow):
         self.add_page("shell", shell)
         self.keep(shell)
 
-    def goto(self, name: str) -> None:
+    def goto(self, name: str):
         w = self._pages.get(name)
         if w is not None:
             self._stack.setCurrentWidget(w)
 
 
+# ---------- MainShell ----------
 class MainShell(QWidget):
     """Main application surface (after successful auth)."""
     def __init__(self, username: str):
@@ -127,12 +129,15 @@ class MainShell(QWidget):
         self.setWindowTitle("Event Planner – App")
         self.username = username
 
-        self._history: List[str] = []
+        # history for center stack
+        self._history: list[str] = []
         self._hist_index: int = -1
-        self._center_pages: Dict[str, QWidget] = {}
-        self._presenters: List[object] = []
-        self._user_presenter = None  # type: Optional[UserInfoPresenter]
-        self._user_view = None       # type: Optional[UserInfoView]
+
+        # name -> widget (center pages)
+        self._center_pages: dict[str, QWidget] = {}
+
+        # prevent GC of presenters
+        self._presenters: list[object] = []
 
         self._build_ui()
         self._wire()
@@ -140,21 +145,20 @@ class MainShell(QWidget):
         self.navigate("decors")  # default landing
 
     # ----- UI -----
-    def _build_ui(self) -> None:
+    def _build_ui(self):
         root = QVBoxLayout(self)
         root.setContentsMargins(8, 8, 8, 8)
         root.setSpacing(8)
 
         # Top bar
-        top = QHBoxLayout()
-        top.setSpacing(10)
+        top = QHBoxLayout(); top.setSpacing(10)
 
         logo = QLabel()
         pm = QPixmap(str(APP_BASE / "style&icons" / "EventPlannerLogo.png"))
         if not pm.isNull():
             logo.setPixmap(pm.scaledToHeight(56, Qt.SmoothTransformation))
 
-        title = QLabel("Welcome, {}".format(self.username))
+        title = QLabel(f"Welcome, {self.username}")
         title.setStyleSheet("font-size:20px; font-weight:700;")
 
         self.back_btn = circle_icon_button("◀", "Back")
@@ -169,8 +173,7 @@ class MainShell(QWidget):
         root.addLayout(top)
 
         # Middle row: LEFT sidebar + center stack
-        mid = QHBoxLayout()
-        mid.setSpacing(10)
+        mid = QHBoxLayout(); mid.setSpacing(10)
 
         side = QFrame(objectName="SidePanel")
         side_l = QVBoxLayout(side)
@@ -178,14 +181,14 @@ class MainShell(QWidget):
         side_l.setSpacing(8)
 
         def mkbtn(text: str, emoji: str) -> QPushButton:
-            b = QPushButton("{}  {}".format(emoji, text), objectName="NavBtn")
+            b = QPushButton(f"{emoji}  {text}", objectName="NavBtn")
             b.setMinimumHeight(44)
             b.setCursor(Qt.PointingHandCursor)
             b.setCheckable(True)
             b.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
             return b
 
-        self.btn_halls    = mkbtn("Halls",        "📅")
+        self.btn_halls   = mkbtn("Halls",       "📅")
         self.btn_services = mkbtn("Services",     "🧰")
         self.btn_decors   = mkbtn("Decorations",  "🎈")
         self.btn_profile  = mkbtn("Personal Info","👤")
@@ -233,7 +236,7 @@ class MainShell(QWidget):
         """)
         self._update_nav_buttons()
 
-    def _wire(self) -> None:
+    def _wire(self):
         self.back_btn.clicked.connect(self.go_back)
         self.fwd_btn.clicked.connect(self.go_forward)
 
@@ -244,14 +247,14 @@ class MainShell(QWidget):
         self.btn_ai.clicked.connect(lambda: self.navigate("ai"))
 
     # ----- Microfrontends -----
-    def _load_microfrontends(self) -> None:
+    def _load_microfrontends(self):
         # Halls list
         halls_v = HallListView()
         halls_p = HallListPresenter(HallListModel(), halls_v)
         halls_p.start()
         self._presenters.append(halls_p)
         self._register_center_page("halls", halls_v)
-        halls_v.cardClicked.connect(self.open_hall_details)
+        halls_v.cardClicked.connect(self.open_hall_details)        # NEW
 
         # Services (list)
         svc_v = ServiceListView()
@@ -259,7 +262,7 @@ class MainShell(QWidget):
         svc_p.start()
         self._presenters.append(svc_p)
         self._register_center_page("services", svc_v)
-        svc_v.cardClicked.connect(self.open_service_details)
+        svc_v.cardClicked.connect(self.open_service_details)       # NEW
 
         # Decorations (list)
         dec_v = DecorListView()
@@ -267,26 +270,22 @@ class MainShell(QWidget):
         dec_p.start()
         self._presenters.append(dec_p)
         self._register_center_page("decors", dec_v)
-        dec_v.cardClicked.connect(self.open_decor_details)
+        dec_v.cardClicked.connect(self.open_decor_details)         # NEW
 
-        # AI (chat)
+        # AI (chat) – via factory (keeps settings out of the presenter)
         chat_v, chat_p = build_chat_module(PROJECT_ROOT, sys.executable)
-        self._presenters.append(chat_p)
+        self._presenters.append(chat_p);
         self._register_center_page("ai", chat_v)
 
-        # User profile
-        user_v = UserInfoView()
-        user_p = UserInfoPresenter(UserInfoModel(), user_v)
-        user_p.start(self.username)
-        self._presenters.append(user_p)
-        self._register_center_page("profile", user_v)
+        # User profile (real view instead of placeholder)
+        user_v = UserInfoView(); user_p = UserInfoPresenter(UserInfoModel(), user_v); user_p.start(self.username)
+        self._presenters.append(user_p); self._register_center_page("profile", user_v)
 
-        # keep references for refresh after 'add decor'
-        self._user_presenter = user_p
-        self._user_view = user_v
-
-        # '+' in Owned items opens the Add-Decor screen
-        user_v.addDecorClicked.connect(self.open_add_decor)
+        # ← חדש: קליק על אייקון הגרף מתוך Owned
+        user_v.ownedGraphClicked.connect(self.open_decor_price_chart)
+        # Placeholders
+        #self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
+        # self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
 
     def _placeholder(self, text: str) -> QWidget:
         w = QWidget()
@@ -298,80 +297,46 @@ class MainShell(QWidget):
         lay.addStretch(1)
         return w
 
-    def _register_center_page(self, name: str, widget: QWidget) -> None:
+    def _register_center_page(self, name: str, widget: QWidget):
         self._center_pages[name] = widget
         self.center_stack.addWidget(widget)
 
     # ----- Details openers -----
-    def open_hall_details(self, hall_id: int) -> None:
-        page_name = "hall:{}".format(hall_id)
+    def open_hall_details(self, hall_id: int):
+        page_name = f"hall:{hall_id}"
         if page_name in self._center_pages:
             self.navigate(page_name); return
         view = HallDetailsView()
         presenter = HallDetailsPresenter(HallDetailsModel(), view)
         presenter.start(hall_id)
-        self._presenters.append(presenter)
+        self._presenters.append(presenter)   # prevent GC
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
-    def open_service_details(self, service_id: int) -> None:
-        page_name = "service:{}".format(service_id)
+    def open_service_details(self, service_id: int):
+        page_name = f"service:{service_id}"
         if page_name in self._center_pages:
             self.navigate(page_name); return
         view = ServiceDetailsView()
         presenter = ServiceDetailsPresenter(ServiceDetailsModel(), view)
         presenter.start(service_id)
-        self._presenters.append(presenter)
+        self._presenters.append(presenter)   # prevent GC
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
-    def open_decor_details(self, decor_id: int) -> None:
-        page_name = "decor:{}".format(decor_id)
+    def open_decor_details(self, decor_id: int):
+        page_name = f"decor:{decor_id}"
         if page_name in self._center_pages:
             self.navigate(page_name); return
         view = DecorDetailsView()
         presenter = DecorDetailsPresenter(DecorDetailsModel(), view)
         presenter.start(decor_id)
-        self._presenters.append(presenter)
-        self._register_center_page(page_name, view)
-        self.navigate(page_name)
-
-    # ----- Add-Decor opener -----
-    def open_add_decor(self) -> None:
-        page_name = "add_decor"
-        if page_name in self._center_pages:
-            view = self._center_pages[page_name]
-            if hasattr(view, "reset_form"):
-                view.reset_form()
-            self.navigate(page_name)
-            return
-
-        view = AddDecorView()
-        model = AddDecorModel()
-
-        def back_to_profile() -> None:
-            # navigate back and refresh the profile data
-            self.navigate("profile")
-            if self._user_presenter is not None:
-                self._user_presenter.start(self.username)
-
-        presenter = AddDecorPresenter(
-            model, view,
-            current_username=self.username,
-            on_success=back_to_profile
-        )
-        presenter.start()
-
-        # optional: cancel goes back without creating
-        if hasattr(view, "cancelRequested"):
-            view.cancelRequested.connect(back_to_profile)
-
-        self._presenters.append(presenter)
+        self._presenters.append(presenter)   # prevent GC
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
     # ----- Navigation helpers -----
-    def navigate(self, name: str) -> None:
+    def navigate(self, name: str):
         if name not in self._center_pages:
             return
         self.center_stack.setCurrentWidget(self._center_pages[name])
@@ -386,7 +351,7 @@ class MainShell(QWidget):
         for key, btn in self._nav_buttons:
             btn.setChecked(key == name)
 
-    def go_back(self) -> None:
+    def go_back(self):
         if self._hist_index > 0:
             self._hist_index -= 1
             name = self._history[self._hist_index]
@@ -395,7 +360,7 @@ class MainShell(QWidget):
             for key, btn in self._nav_buttons:
                 btn.setChecked(key == name)
 
-    def go_forward(self) -> None:
+    def go_forward(self):
         if self._hist_index < len(self._history) - 1:
             self._hist_index += 1
             name = self._history[self._hist_index]
@@ -404,6 +369,21 @@ class MainShell(QWidget):
             for key, btn in self._nav_buttons:
                 btn.setChecked(key == name)
 
-    def _update_nav_buttons(self) -> None:
+    def _update_nav_buttons(self):
         self.back_btn.setDisabled(self._hist_index <= 0)
         self.fwd_btn.setDisabled(self._hist_index >= len(self._history) - 1)
+
+    def open_decor_price_chart(self, decor_id: int):
+        page_name = f"decorprice:{int(decor_id)}"
+        if page_name in self._center_pages:
+            self.navigate(page_name)
+            return
+
+        view = DecorPriceView()
+        presenter = DecorPricePresenter(DecorPriceModel(), view)
+        presenter.show_for(int(decor_id))  # טוען את הנתונים ומרנדר
+        self._presenters.append(presenter)  # למנוע GC
+
+        self._register_center_page(page_name, view)
+        self.navigate(page_name)
+
