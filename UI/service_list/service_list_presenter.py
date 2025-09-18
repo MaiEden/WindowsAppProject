@@ -1,9 +1,8 @@
 """
 Presenter: ties View <-> Model (MVP)
 - Wires search, category, availability, refresh
-- Maps data rows to card view models (subset only)
 """
-from typing import List, Dict, Any
+from typing import Dict, Any
 from PySide6.QtCore import QObject
 from service_list_model import ServiceListModel
 
@@ -65,4 +64,3 @@ class ServiceListPresenter(QObject):
             "available": bool(r.get("Available")),
             "photo": r.get("PhotoUrl") or "",
         }
-

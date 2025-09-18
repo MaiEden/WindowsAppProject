@@ -1,6 +1,5 @@
 """
 Model: Fetches Services (dbo.ServiceOption) from the server (no local fallbacks).
-Expected response: list[dict] with keys aligned to dbo.ServiceOption columns.
 """
 from typing import List, Dict, Any, Optional
 from UI import server_access
@@ -43,9 +42,3 @@ class ServiceListModel:
             return t in hay
 
         return [x for x in self._items if match(x)]
-
-    # Compatibility hook if you later want to preload images similarly
-    def get_pic(self, imageName: str):
-        self._image_url = f"/service/{imageName}.jpg"
-        IMAGE_LOADER.pixmapReady.connect(self._on_pixmap_ready, type=Qt.UniqueConnection)
-        IMAGE_LOADER.fetch(self._image_url)
