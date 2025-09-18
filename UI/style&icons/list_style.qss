@@ -1,46 +1,44 @@
-/* =========================
-   Cards
-   ========================= */
+/*Cards*/
 QFrame#Card {
     background: #ffffff;
     border-radius: 16px;
     border: 1px solid rgba(0,0,0,0.06);
 }
 
-/* כל התוויות בתוך הכרטיס יקבלו ריווח פנימי נעים */
+/* Give all labels inside the card some comfortable horizontal padding */
 QFrame#Card QLabel {
     padding-left: 12px;
     padding-right: 12px;
 }
 
-/* תמונת הכרטיס */
+/* Card image */
 QLabel#CardImage {
     background: #f5f7fa;
     border-top-left-radius: 16px;
     border-top-right-radius: 16px;
-    padding: 0; /* התמונה ממלאת רוחב */
+    padding: 0; /* image spans full width */
 }
 
-/* כותרת גדולה יותר */
+/* Larger title */
 QLabel#CardTitle {
     font-size: 15px;
     font-weight: 600;
     color: #1f2937; /* gray-800 */
 }
 
-/* תת-כותרת קטנה ועדינה יותר */
+/* Smaller, subtler subtitle */
 QLabel#CardSubtitle {
     font-size: 13px;
     color: #6b7280; /* gray-500 */
 }
 
-/* אזור */
+/* Region label */
 QLabel#Region {
     font-size: 12px;
     color: #374151; /* gray-700 */
 }
 
-/* hover קליל לכרטיס */
+/* Subtle hover effect for the card */
 QFrame#Card:hover {
     border-color: rgba(0,0,0,0.10);
 }
@@ -53,7 +51,7 @@ QLineEdit {
     border-radius: 10px;
     border: 1px solid #d1d5db;
     background: #ffffff;
-    selection-background-color: #bfdbfe; /* כחול בהיר לבחירה */
+    selection-background-color: #bfdbfe; /* light blue selection */
 }
 QLineEdit:hover { border-color: #9ca3af; }
 QLineEdit:focus { border: 1px solid #93c5fd; }
@@ -136,15 +134,15 @@ QScrollBar::add-line:horizontal,
 QScrollBar::sub-line:horizontal { width: 0; }
 
 /* =========================
-   Availability Pill  (שימי לב: זה בסוף הקובץ כדי לקבל קדימות)
+   Availability Pill  (Note: kept at the end to take precedence)
    ========================= */
 
-/* בסיס – עיגול וריווח */
+/* Base — rounded pill with padding */
 QFrame#Card QLabel#Pill,
 QLabel#Pill {
     padding: 4px 12px;
-    min-height: 22px;                 /* מבטיח גובה מספיק לגלולה */
-    border-radius: 999px;             /* פינות רכות לגמרי */
+    min-height: 22px;                 /* ensures enough height for the pill */
+    border-radius: 999px;             /* fully rounded corners */
     font-size: 12px;
     font-weight: 600;
     border: 1px solid transparent;
@@ -155,7 +153,7 @@ QLabel#Pill {
 QFrame#Card QLabel#Pill[ok="true"],
 QLabel#Pill[ok="true"] {
     color: #166534;                   /* green-800 */
-    background-color: #e8f5ec;        /* ירוק עדין */
+    background-color: #e8f5ec;        /* soft green */
     border: 1px solid #bbdfc7;
     border-radius: 999px;
 }
@@ -164,7 +162,7 @@ QLabel#Pill[ok="true"] {
 QFrame#Card QLabel#Pill[ok="false"],
 QLabel#Pill[ok="false"] {
     color: #92400e;                   /* amber-800 */
-    background-color: #fff7ed;        /* כתמתם עדין */
+    background-color: #fff7ed;        /* soft amber */
     border: 1px solid #fde0c2;
     border-radius: 999px;
 }
@@ -172,19 +170,19 @@ QLabel#Pill[ok="false"] {
 /* ===== Availability Pill — FINAL OVERRIDE ===== */
 QFrame#Card QLabel#Pill,
 QLabel#Pill {
-    qproperty-autoFillBackground: true;   /* מכריח צביעת רקע */
+    qproperty-autoFillBackground: true;   /* force background painting */
     padding: 4px 12px;
     min-height: 22px;
-    border: 2px solid #bbdfc7;            /* מראה קצוות בבירור לבדיקת רדיוס */
-    border-radius: 16px;                   /* קצוות רכים */
+    border: 2px solid #bbdfc7;            /* clear border to verify radius */
+    border-radius: 16px;                   /* soft corners */
     font-size: 12px;
     font-weight: 600;
     qproperty-alignment: 'AlignCenter';
-    background-color: #e8f5ec;            /* ברירת מחדל ירקרקה */
+    background-color: #e8f5ec;            /* greenish default */
     color: #166534;
 }
 
-/* Available/Unavailable — אם את משנה מצב, הצבעים יוחלפו אבל הרדיוס נשאר */
+/* Available/Unavailable — if state changes, colors swap but radius remains */
 QFrame#Card QLabel#Pill[ok="true"],
 QLabel#Pill[ok="true"] {
     background-color: #e8f5ec;
