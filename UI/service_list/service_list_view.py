@@ -58,8 +58,8 @@ class ServiceCard(QFrame):
         img.setAlignment(Qt.AlignCenter)
         self._img = img
 
-        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        load_into(img, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420, 160))
+        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
+        load_into(img, url, size=QSize(420, 160))
 
         title = QLabel(self.vm.get("title", ""), objectName="CardTitle")
         subtitle = QLabel(self.vm.get("subtitle", ""), objectName="CardSubtitle")

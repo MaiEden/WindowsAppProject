@@ -1,10 +1,8 @@
 """
 Model for Sign Up
 """
-
 from typing import Tuple
 from UI import server_access
-
 
 class SignUpModel:
 

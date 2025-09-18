@@ -3,7 +3,7 @@ Presenter: ties View <-> Model (MVP)
 - Wires search, category, availability, refresh
 - Maps data rows to card view models (subset only)
 """
-from typing import List, Dict, Any
+from typing import Dict, Any
 from PySide6.QtCore import QObject
 from decor_list_model import DecorListModel
 

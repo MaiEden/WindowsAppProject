@@ -44,7 +44,6 @@ def load_global_qss(app):
             css += p.read_text(encoding="utf-8") + "\n"
     app.setStyleSheet(css)
 
-
 def build_auth_flow(app_window: AppWindow):
     """Create Login & SignUp pages and wire navigation + success route."""
     # Views

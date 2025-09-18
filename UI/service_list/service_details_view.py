@@ -96,8 +96,8 @@ class ServiceDetailsView(QWidget):
     # ---------- Populate with data from API (ServiceOption row) ----------
     def populate(self, r: Dict[str, Any]):
         # Image
-        url = r.get("PhotoUrl") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        load_into(self.photo, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420,260))
+        url = r.get("PhotoUrl") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
+        load_into(self.photo, url, size=QSize(420,260))
 
         # Titles
         name = r.get("ServiceName") or ""

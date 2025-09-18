@@ -1,16 +1,12 @@
-"""
-View: UI only
-- Presenter connects handlers to these UI events
-"""
 from pathlib import Path
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton,
     QFrame, QComboBox, QGraphicsDropShadowEffect
 )
-BASE_DIR = Path(__file__).resolve().parents[1]   # .../UI
+
+BASE_DIR = Path(__file__).resolve().parents[1]
 
 def apply_drop_shadow(widget, radius=18, x_offset=0, y_offset=6):
     """Apply a subtle, modern drop shadow to a widget."""
@@ -29,7 +25,6 @@ class SignUpView(QWidget):
         self.setWindowTitle("Create an Account")
 
         # size when window opens and minimum size
-        self.resize(520, 640)
         self.setMinimumSize(520, 640)
 
         self._build_ui()
@@ -58,6 +53,7 @@ class SignUpView(QWidget):
         # Left column: Title + Subtitle
         titles_col = QVBoxLayout()
         titles_col.setSpacing(4)
+
         # Titles
         self.title = QLabel("Sign Up", objectName="Title")
         self.subtitle = QLabel("Please fill in all fields", objectName="Subtitle")
