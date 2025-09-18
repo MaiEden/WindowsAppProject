@@ -17,7 +17,7 @@ def build_chat_module(project_root: Path, python_exe: str) -> Tuple[ChatView, Ch
     - Creates Model, View, Presenter and wires them.
     - Returns (view, presenter); keep a ref to presenter so signals stay alive.
     """
-    cache_dir     = str(project_root / "server" / "agent" / "multi_source_cache")
+    cache_dir = str(project_root / "server" / "agent" / "multi_source_cache")
     llm_agent_dir = str(project_root / "server" / "agent")
 
     settings = ChatSettings(
@@ -29,6 +29,6 @@ def build_chat_module(project_root: Path, python_exe: str) -> Tuple[ChatView, Ch
     )
 
     model = ChatModel(settings=settings)
-    view  = ChatView()
-    pres  = ChatPresenter(model, view)
+    view = ChatView()
+    pres = ChatPresenter(model, view)
     return view, pres

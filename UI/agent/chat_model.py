@@ -14,6 +14,7 @@ def _build_inline_runner(question: str, model: str, host: str, cache_dir: str, l
     """Create the inline Python code that runs in the external interpreter."""
     def esc(s: str) -> str:
         return (s or "").replace("\\", "\\\\").replace('"', '\\"')
+
     q = esc(question)
     mdl = esc(model)
     h = esc(host)
@@ -38,6 +39,8 @@ except Exception as e:
 
 
 class _ExternalAskWorker(QThread):
+    """Runs the inline helper in a subprocess;
+    parses stdout JSON and emits finished(answer, error)."""
     finished = Signal(str, str)  # (answer, error)
 
     def __init__(self, python_exe: str, question: str, model: str, host: str, cache_dir: str, llm_dir: str):
@@ -50,6 +53,15 @@ class _ExternalAskWorker(QThread):
         self.llm_dir = llm_dir
 
     def run(self):
+        """
+        Worker thread entrypoint.
+
+        Flow:
+          1) Build inline helper code via _build_inline_runner(...).
+          2) Run it as a subprocess: [python_exe, "-c", code].
+          3) Read stdout/stderr; try json.loads(stdout). If noisy, parse the last JSON-looking line.
+          4) Emit finished(answer, error): on success (answer, ""), on failure ("", error).
+        """
         try:
             code = _build_inline_runner(self.question, self.model, self.host, self.cache_dir, self.llm_dir)
             proc = subprocess.run([self.python_exe, "-c", code], capture_output=True, text=True)
@@ -85,7 +97,8 @@ class ChatSettings:
 
 
 class ChatModel(QObject):
-    """Chat Model (MVP)."""
+    """Qt Model for chat. Prevents concurrent asks;
+     spawns worker; re-emits answer_ready(answer, error)."""
     answer_ready = Signal(str, str)  # (answer, error)
 
     def __init__(self, settings: ChatSettings):
@@ -94,6 +107,14 @@ class ChatModel(QObject):
         self._worker: Optional[_ExternalAskWorker] = None
 
     def ask(self, question: str) -> None:
+        """
+        Submit a question to the external assistant.
+
+        Behavior:
+          - If a previous worker is still running, returns immediately (prevents concurrent asks).
+          - Spawns _ExternalAskWorker with current settings and connects to its finished signal.
+          - Returns immediately; the result will be emitted via answer_ready(answer, error).
+        """
         if self._worker and self._worker.isRunning():
             return
         self._worker = _ExternalAskWorker(
@@ -108,5 +129,9 @@ class ChatModel(QObject):
         self._worker.start()
 
     def _on_worker_finished(self, answer: str, error: str) -> None:
+        """
+        Handle worker completion: emit answer_ready(answer, error) to the Presenter/View
+        and reset the worker reference for the next request.
+        """
         self.answer_ready.emit(answer, error)
         self._worker = None
