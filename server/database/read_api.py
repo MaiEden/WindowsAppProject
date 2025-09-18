@@ -1,22 +1,40 @@
 """
-read_api.py
-Read-only API to fetch data and aggregated reports from the Events app schema.
+read_api.py - API to fetch data. (queries)
 
 This module provides:
 -------------------------
-- get_users():   Return list of all users.
-- get_halls():   Full catalog of halls.
-- get_halls_filtered(): Filter halls by region, type, and search text.
-- get_events():  Events with manager username.
-- get_user_services(): Mapping of services offered by each user.
-- report_users_with_services_and_events(): Per-user aggregation.
-- report_events_with_services_and_manager(): Per-event aggregation.
-- report_halls_with_region(): Halls grouped by region.
-- get_user_by_user_name(): Lookup of a single user.
+Users:
+- get_users():                Return list of all users.
+- get_user_by_user_name():    Lookup of a single user by username.
 
-Additionally:
-- _fetchall_dicts(): Converts pyodbc cursor results to list of dicts.
-- print_table(): Helper for pretty-printing rows in tabular format.
+Halls:
+- get_halls():                Full catalog of halls.
+- get_hall_by_id():           Lookup of a single hall by ID.
+- get_hall_cards():           Return hall cards with filters, sorting & paging.
+- get_halls_used_by_user():   Halls used by a given user.
+
+Services:
+- get_services():             Full catalog of services.
+- get_service_by_id():        Lookup of a single service by ID.
+- get_service_cards():        Return service cards with filters, sorting & paging.
+- get_services_used_by_user(): Services used by a given user.
+
+Decor:
+- get_decotators():           Full catalog of decor options.
+- get_decor_by_id():          Lookup of a single decor item by ID.
+- get_decor_cards():          Return decor cards with filters, sorting & paging.
+- get_decor_prices():         Return decor items with S/M/L prices and MidPrice.
+- get_decor_used_by_user():   Decor items used by a given user.
+
+User ownership:
+- get_owned_items_by_user():  All assets owned by a given user (union of hall/service/decor).
+
+DB:
+- get_tables_name():          Return all tables names.
+
+Utilities:
+- _fetchall_dicts():          Convert pyodbc cursor results to list of dicts.
+- print_table():              Pretty-print rows in tabular format.
 """
 
 import pyodbc
@@ -26,7 +44,6 @@ from server.gateway.DBgateway import DbGateway
 
 db = DbGateway()
 
-
 def _fetchall_dicts(cur: pyodbc.Cursor) -> List[Dict[str, Any]]:
     """
     Convert a pyodbc cursor into a list of dictionaries.
@@ -35,7 +52,6 @@ def _fetchall_dicts(cur: pyodbc.Cursor) -> List[Dict[str, Any]]:
     cols = [d[0] for d in cur.description]
     return [dict(zip(cols, row)) for row in cur.fetchall()]
 
-
 def print_table(
         rows: Sequence[Dict[str, Any]],
         columns: Optional[Sequence[str]] = None,
@@ -43,11 +59,6 @@ def print_table(
 ) -> None:
     """
     Pretty-print a list of dictionaries as a text table.
-
-    Args:
-        rows: list of dict rows.
-        columns: optional explicit list of columns; if None, infer from data.
-        max_col_width: truncate long values to this width.
     """
     if not rows:
         print("(no rows)")
@@ -90,12 +101,10 @@ def print_table(
         line = " | ".join(cell(r.get(col), w) for col, w in zip(columns, widths))
         print(line)
 
-
 def get_users() -> List[Dict[str, Any]]:
     """Fetch all users ordered by username."""
     sql = "SELECT * FROM dbo.Users ORDER BY Username;"
     return db.query(sql)
-
 
 def get_halls() -> List[Dict[str, Any]]:
     """
@@ -114,55 +123,14 @@ def get_halls() -> List[Dict[str, Any]]:
     """
     return db.query(sql)
 
-
-def get_halls_filtered(
-        region: Optional[str] = None,
-        hall_type: Optional[str] = None,
-        search: Optional[str] = None
-) -> List[Dict[str, Any]]:
-    """
-    Fetch halls with optional filters for region, type, and free-text search
-    across name/description.
-    """
-    sql = """
-    SELECT
-        h.HallId, h.HallName, h.HallType, h.Capacity, h.Region,
-        h.Latitude, h.Longitude, h.Description,
-        h.PricePerHour, h.PricePerDay, h.PricePerPerson,
-        h.ParkingAvailable, h.WheelchairAccessible,
-        h.ContactPhone, h.ContactEmail, h.WebsiteUrl, h.PhotoUrl
-    FROM dbo.Hall h
-    WHERE 1=1
-    """
-    params = []
-
-    if region and region != "All regions":
-        sql += " AND h.Region = ?"
-        params.append(region)
-
-    if hall_type and hall_type != "All types":
-        sql += " AND h.HallType = ?"
-        params.append(hall_type)
-
-    if search:
-        sql += " AND (h.HallName LIKE ? OR h.Description LIKE ?)"
-        like = f"%{search}%"
-        params.extend([like, like])
-
-    sql += " ORDER BY h.HallName;"
-    return db.query(sql, params)
-
 def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
     """Lookup a single user by username."""
     sql = "SELECT * FROM dbo.Users WHERE Username = ?;"
     results = db.query(sql, (user_name,))
     return results[0] if results else None
 
-def get_tables_name():
-    sql = "SELECT name FROM sys.tables"
-    return db.query(sql)
-
-def get_decotators():
+def get_decorators():
+    """ Fetch all decorators. """
     sql = "SELECT * FROM dbo.DecorOption"
     return db.query(sql)
 
@@ -188,7 +156,7 @@ def get_decor_cards(
       - order_by in {'DecorName','MinPrice','Region','Category'}
       - ascending True/False
     Paging:
-      - if limit provided, uses OFFSET/FETCH (SQL Server 2012+)
+      - if limit provided, uses OFFSET/FETCH
     """
 
     # allowlisted ordering only (to avoid SQL injection)
@@ -253,6 +221,7 @@ def get_decor_cards(
     return db.query(sql, params)
 
 def get_services():
+    """ Fetch all services. """
     sql = "SELECT * FROM dbo.ServiceOption"
     return db.query(sql)
 
@@ -346,7 +315,6 @@ def get_service_cards(
 
     return db.query(sql, params)
 
-
 def get_hall_cards(
     search: Optional[str] = None,
     hall_type: Optional[str] = None,
@@ -434,21 +402,25 @@ def get_hall_cards(
     return db.query(sql, params)
 
 def get_decor_by_id(decor_id: int) -> Optional[Dict[str, Any]]:
+    """Lookup of a single decor by ID."""
     sql = "SELECT * FROM dbo.DecorOption WHERE DecorId = ?;"
     rows = db.query(sql, (decor_id,))
     return rows[0] if rows else None
 
 def get_service_by_id(service_id: int) -> Optional[Dict[str, Any]]:
+    """Lookup of a single service by ID."""
     sql = "SELECT * FROM dbo.ServiceOption WHERE ServiceId = ?;"
     rows = db.query(sql, (service_id,))
     return rows[0] if rows else None
 
 def get_hall_by_id(hall_id: int) -> Optional[Dict[str, Any]]:
+    """Lookup of a single hall by ID."""
     sql = "SELECT * FROM dbo.Hall WHERE HallId = ?;"
     rows = db.query(sql, (hall_id,))
     return rows[0] if rows else None
 
 def get_decor_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    """ Get decors used by a single user"""
     sql = """
     SELECT d.DecorId AS id,
            d.DecorName AS title,
@@ -463,6 +435,7 @@ def get_decor_used_by_user(user_id: int) -> List[Dict[str, Any]]:
     return db.query(sql, (user_id,))
 
 def get_services_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    """ Get services used by a single user"""
     sql = """
     SELECT s.ServiceId AS id,
            s.ServiceName AS title,
@@ -477,6 +450,7 @@ def get_services_used_by_user(user_id: int) -> List[Dict[str, Any]]:
     return db.query(sql, (user_id,))
 
 def get_halls_used_by_user(user_id: int) -> List[Dict[str, Any]]:
+    """ Get halls used by a single user"""
     sql = """
     SELECT h.HallId AS id,
            h.HallName AS title,
@@ -491,6 +465,7 @@ def get_halls_used_by_user(user_id: int) -> List[Dict[str, Any]]:
     return db.query(sql, (user_id,))
 
 def get_owned_items_by_user(user_id: int) -> List[Dict[str, Any]]:
+    """ Get all items owned by a single user"""
     sql = """
     SELECT s.ServiceId AS id,
            s.ServiceName AS title,
@@ -530,10 +505,6 @@ def get_owned_items_by_user(user_id: int) -> List[Dict[str, Any]]:
     """
     return db.query(sql, (user_id, user_id, user_id))
 
-
-# --- NEW: decor prices with computed MidPrice ---
-from typing import Any  # אם כבר קיים למעלה – אפשר להסיר שורה זו
-
 def get_decor_prices(
         search: Optional[str] = None,
         category: Optional[str] = None,
@@ -545,13 +516,12 @@ def get_decor_prices(
         offset: Optional[int] = None,
 ) -> List[Dict[str, Any]]:
     """
-    מחזיר רשימת קישוטים עם מחירי S/M/L ושדה MidPrice מחושב כך:
-      - אם PriceMedium קיים -> זה הערך
-      - אחרת ממוצע PriceSmall ו-PriceLarge אם שניהם קיימים
-      - אחרת המחיר היחיד שקיים מבין Small/Large
+    Return decor items with S/M/L prices and a computed MidPrice
+    (medium if present, else avg of small/large, else whichever exists).
 
-    כולל מסננים (קטגוריה/אזור/זמינות/חיפוש), מיון ו-Paging אופציונלי.
-    השמות תואמים לטבלת dbo.DecorOption ולשדות המחיר בסכמה.  #
+    Supports filters (category, region, available, search),
+    sorting (DecorName, Region, Category, MidPrice),
+    and optional paging (limit/offset).
     """
     order_map = {
         "DecorName": "d.DecorName",
@@ -574,7 +544,7 @@ def get_decor_prices(
         d.PriceSmall,
         d.PriceMedium,
         d.PriceLarge,
-        /* MidPrice מחושב לפי הכללים למעלה */
+
         COALESCE(
             d.PriceMedium,
             CASE
@@ -626,10 +596,14 @@ def get_decor_prices(
 
     return db.query(sql, params)
 
+def get_tables_name():
+    """ Return tables names """
+    sql = "SELECT name FROM sys.tables"
+    return db.query(sql)
 
 if __name__ == "__main__":
     # Demo printing of queries
-    print("decorators:"); print_table(get_decotators())
+    print("decorators:"); print_table(get_decorators())
     print("services:"); print_table(get_services())
     print("\nHalls:"); print_table(get_halls())
     print(get_decor_cards())
