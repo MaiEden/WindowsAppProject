@@ -7,10 +7,9 @@ commands are delegated to server.database.insert_api.
 from typing import Optional, Dict, Any, List
 import server.database.read_api as read_api
 from server.database import insert_api
-from server.external_services.cordinats.geocoding_client import get_address
+from server.external_services.coordinates.geocoding_client import get_address
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
 
 app = FastAPI(title="Events Backend (Demo)")
 
