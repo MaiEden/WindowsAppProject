@@ -1,19 +1,12 @@
 """
-AddDecorView (full)
--------------------
+AddDecorView
 - Complete form for adding a decoration.
 - Inline error labels, error summary banner, and red highlight via QSS.
-- Primary/Secondary buttons with object names for styling.
-
-Notes:
-- All ids (object names) are lowercase to match the QSS selectors.
 """
 
 from __future__ import annotations
-
 from pathlib import Path
 from typing import Dict, Any, Tuple, Optional
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QCheckBox,
@@ -21,8 +14,11 @@ from PySide6.QtWidgets import (
     QScrollArea, QTextEdit
 )
 
-
 def _lbl(text: str, obj: Optional[str] = None) -> QLabel:
+    """
+    Small factory for QLabel: creates a label with the given text and,
+    if provided, sets its objectName (useful for QSS styling/lookup).
+    """
     l = QLabel(text)
     if obj:
         l.setObjectName(obj)
@@ -85,7 +81,7 @@ class AddDecorView(QWidget):
             s = QDoubleSpinBox()
             s.setRange(0.0, 999999.99)
             s.setDecimals(2)
-            s.setSingleStep(10.0)
+            s.setSingleStep(5.0)
             s.valueChanged.connect(self.priceChanged)
             return s
 
@@ -166,8 +162,6 @@ class AddDecorView(QWidget):
         # Object names for QSS styling
         self.btn_submit.setObjectName("btn-primary")
         self.btn_cancel.setObjectName("btn-secondary")
-        self.btn_submit.setMinimumHeight(36)
-        self.btn_cancel.setMinimumHeight(36)
 
         actions.addWidget(self.btn_cancel)
         actions.addWidget(self.btn_submit)
@@ -285,12 +279,9 @@ class AddDecorView(QWidget):
             err_label.setVisible(True)
 
     def _load_local_qss(self):
-        # נטען את add_decor.qss שיושב לצד הקובץ הזה
         qss_path = Path(__file__).resolve().parent / "add_decor.qss"
         if qss_path.exists():
             css = qss_path.read_text(encoding="utf-8")
-            # מומלץ לתת שם אובייקט לשורש – לא חובה, אבל טוב לספציפיות
             if not self.objectName():
                 self.setObjectName("add-decor-root")
             self.setStyleSheet(css)
-

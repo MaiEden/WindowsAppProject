@@ -12,7 +12,7 @@ class AuthModel:
         user = server_access.request(f"/DB/users/get_user_by_name/{username}")
         if not user:
             return False
-        # Assuming user is a dictionary with 'password' key
+
         stored_password = user['PasswordHash']
         if not stored_password:
             return False
