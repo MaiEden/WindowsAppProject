@@ -1,9 +1,7 @@
 """
-create_schema_poly.py
-Create polymorphic schema for Events app.
-Each service has its own table, linked via (ServiceType, ServiceKey).
+create_schema.py
+Create DB schema for Events app.
 """
-
 from server.gateway.DBgateway import DbGateway
 
 SCHEMA_SQL = """
@@ -19,8 +17,7 @@ BEGIN
     );
 END;
 
-
--- === Service-specific tables ===
+-- === Services tables ===
 
 -- Halls
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Hall')
@@ -46,116 +43,45 @@ BEGIN
     );
 END;
 
--- DJs
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='DJ')
-BEGIN
-    CREATE TABLE dbo.DJ (
-        DJId INT IDENTITY(1,1) PRIMARY KEY,
-        DJName NVARCHAR(200) NOT NULL,
-        Equipment NVARCHAR(500) NULL,
-        Region NVARCHAR(50) NOT NULL,
-        Price DECIMAL(10,2) NULL,
-        ContactPhone NVARCHAR(50) NULL,
-        ContactEmail NVARCHAR(200) NULL
-    );
-END;
-
--- Catering
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Catering')
-BEGIN
-    CREATE TABLE dbo.Catering (
-        CateringId INT IDENTITY(1,1) PRIMARY KEY,
-        CateringName NVARCHAR(200) NOT NULL,
-        CuisineType NVARCHAR(100) NULL,
-        Region NVARCHAR(50) NOT NULL,
-        PricePerPerson DECIMAL(10,2) NULL,
-        Kosher BIT NOT NULL DEFAULT 0,
-        ContactPhone NVARCHAR(50) NULL,
-        ContactEmail NVARCHAR(200) NULL
-    );
-END;
-
--- Decor
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Decor')
-BEGIN
-    CREATE TABLE dbo.Decor (
-        DecorId INT IDENTITY(1,1) PRIMARY KEY,
-        DecorName NVARCHAR(200) NOT NULL,
-        Style NVARCHAR(100) NULL,
-        Region NVARCHAR(50) NOT NULL,
-        Price DECIMAL(10,2) NULL,
-        ContactPhone NVARCHAR(50) NULL,
-        ContactEmail NVARCHAR(200) NULL
-    );
-END;
-
--- Photography
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Photography')
-BEGIN
-    CREATE TABLE dbo.Photography (
-        PhotographyId INT IDENTITY(1,1) PRIMARY KEY,
-        PhotographerName NVARCHAR(200) NOT NULL,
-        PackageDescription NVARCHAR(500) NULL,
-        Region NVARCHAR(50) NOT NULL,
-        Price DECIMAL(10,2) NULL,
-        ContactPhone NVARCHAR(50) NULL,
-        ContactEmail NVARCHAR(200) NULL
-    );
-END;
-
--- Attractions
-IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='Attraction')
-BEGIN
-    CREATE TABLE dbo.Attraction (
-        AttractionId INT IDENTITY(1,1) PRIMARY KEY,
-        AttractionName NVARCHAR(200) NOT NULL,
-        AgeMin INT NULL,
-        AgeMax INT NULL,
-        Region NVARCHAR(50) NOT NULL,
-        Price DECIMAL(10,2) NULL,
-        Description NVARCHAR(500) NULL
-    );
-END;
-
 -- decoration options
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'DecorOption')
 BEGIN
     CREATE TABLE dbo.DecorOption (
         DecorId INT IDENTITY(1,1) CONSTRAINT PK_DecorOption PRIMARY KEY,
 
-        -- זיהוי ותיאור
+        -- description and ID
         DecorName NVARCHAR(200) NOT NULL,
         Category  NVARCHAR(50)  NOT NULL,
         Theme     NVARCHAR(100) NULL,
         Description NVARCHAR(MAX) NULL,
 
-        -- התאמה ולוגיסטיקה
+        -- Matching and logistics
         Indoor BIT NOT NULL CONSTRAINT DF_DecorOption_Indoor DEFAULT (1),
         RequiresElectricity BIT NOT NULL CONSTRAINT DF_DecorOption_ReqElec DEFAULT (0),
         SetupDurationMinutes    INT NULL,
         TeardownDurationMinutes INT NULL,
 
-        -- תמחור לפי גודל מקום
+        -- Pricing by place size
         PriceSmall  DECIMAL(10,2) NULL,
         PriceMedium DECIMAL(10,2) NULL,
         PriceLarge  DECIMAL(10,2) NULL,
         DeliveryFee DECIMAL(10,2) NULL,
 
-        -- פרטים גאוגרפיים וספק
+        -- Geographical details and supplier
         Region       NVARCHAR(50)  NULL,
         VendorName   NVARCHAR(200) NULL,
         ContactPhone NVARCHAR(50)  NULL,
         ContactEmail NVARCHAR(200) NULL,
 
-        -- מדיה
+        -- photo
         PhotoUrl NVARCHAR(500) NULL,
 
-        -- זמינות ומדיניות
+        -- Availability and policies
         LeadTimeDays       INT NULL,
         CancellationPolicy NVARCHAR(500) NULL,
         Available BIT NOT NULL CONSTRAINT DF_DecorOption_Available DEFAULT (1),
 
-        -- אילוצים
+        -- Constraints
         CONSTRAINT CK_DecorOption_Category CHECK (Category IN (
             N'Balloons',
             N'Flowers',
@@ -187,27 +113,27 @@ BEGIN
         )
     );
 
-    -- אינדקסים שימושיים
+    -- Useful indexes
     CREATE INDEX IX_DecorOption_Category  ON dbo.DecorOption(Category);
     CREATE INDEX IX_DecorOption_Region    ON dbo.DecorOption(Region);
     CREATE INDEX IX_DecorOption_Vendor    ON dbo.DecorOption(VendorName);
     CREATE INDEX IX_DecorOption_Available ON dbo.DecorOption(Available) WHERE Available = 1;
 END;
 
--- Activities / Services
+-- Services
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name = 'ServiceOption')
 BEGIN
     CREATE TABLE dbo.ServiceOption (
-        /* זיהוי ותיאור */
+        -- description and ID
         ServiceId INT IDENTITY(1,1) CONSTRAINT PK_ServiceOption PRIMARY KEY,
         ServiceName NVARCHAR(200) NOT NULL,
-        Category NVARCHAR(50) NOT NULL,               -- Entertainment/Workshop/Show/Kids/Music/Speaker/Games
+        Category NVARCHAR(50) NOT NULL,
         Subcategory NVARCHAR(100) NULL,
         ShortDescription NVARCHAR(300) NULL,
         Description NVARCHAR(MAX) NULL,
         PhotoUrl NVARCHAR(500) NULL,
 
-        /* קהל ודרישות מקום */
+        -- Audience and place requirements
         MinAge INT NULL,
         MaxAge INT NULL,
         MinParticipants INT NULL,
@@ -218,7 +144,7 @@ BEGIN
         StageRequired BIT NOT NULL CONSTRAINT DF_ServiceOption_StageReq DEFAULT (0),
         RequiresElectricity BIT NOT NULL CONSTRAINT DF_ServiceOption_ReqElec DEFAULT (0),
 
-        /* מיקום וספק */
+        -- Location and provider
         Region NVARCHAR(50) NULL,
         TravelLimitKm INT NULL,
         TravelFeeBase DECIMAL(10,2) NULL,
@@ -227,22 +153,22 @@ BEGIN
         ContactPhone NVARCHAR(50) NULL,
         ContactEmail NVARCHAR(200) NULL,
 
-        /* תמחור וזמינות */
-        BasePrice DECIMAL(10,2) NULL,         -- מחיר בסיסי לאירוע
-        PricePerPerson DECIMAL(10,2) NULL,    -- מחיר לאדם (אופציונלי)
+        -- Pricing and availability
+        BasePrice DECIMAL(10,2) NULL,         -- base price for event
+        PricePerPerson DECIMAL(10,2) NULL,    -- price per person (optional)
         LeadTimeDays INT NULL,
         CancellationPolicy NVARCHAR(500) NULL,
         Available BIT NOT NULL CONSTRAINT DF_ServiceOption_Available DEFAULT (1),
 
         /* ---------------- Constraints ---------------- */
 
-        -- Enum-ים
+        -- Enums
         CONSTRAINT CK_ServiceOption_Category CHECK (Category IN (
             N'Entertainment', N'Workshop', N'Show', N'Kids', N'Music', N'Speaker', N'Games'
         )),
         CONSTRAINT CK_ServiceOption_Noise CHECK (NoiseLevel IS NULL OR NoiseLevel IN (N'Low', N'Medium', N'High')),
 
-        -- טווחי גיל/משתתפים
+        -- Age/participants ranges
         CONSTRAINT CK_ServiceOption_AgeRange CHECK (
             (MinAge IS NULL OR MinAge >= 0) AND
             (MaxAge IS NULL OR MaxAge >= 0) AND
@@ -254,7 +180,7 @@ BEGIN
             (MinParticipants IS NULL OR MaxParticipants IS NULL OR MinParticipants <= MaxParticipants)
         ),
 
-        -- אי שליליות של מספרים/מחירים/מרחקים/ימים
+        -- Non-negative of numbers/prices/distances/days
         CONSTRAINT CK_ServiceOption_NonNegative CHECK (
             (TravelLimitKm    IS NULL OR TravelLimitKm    >= 0) AND
             (TravelFeeBase    IS NULL OR TravelFeeBase    >= 0) AND
@@ -264,18 +190,18 @@ BEGIN
             (LeadTimeDays     IS NULL OR LeadTimeDays     >= 0)
         ),
 
-        -- לפחות מודל תמחור אחד (בסיסי או פר אדם)
+        -- At least one pricing model (basic or per person)
         CONSTRAINT CK_ServiceOption_AtLeastOnePrice CHECK (
             ISNULL(BasePrice,0) + ISNULL(PricePerPerson,0) > 0
         ),
 
-        -- אימות אימייל בסיסי
+        -- Basic email verification
         CONSTRAINT CK_ServiceOption_EmailFormat CHECK (
             ContactEmail IS NULL OR ContactEmail LIKE N'%@%._%'
         )
     );
 
-    /* ---------------- אינדקסים ---------------- */
+    /* ---------------- indexes ---------------- */
     CREATE INDEX IX_Service_Category   ON dbo.ServiceOption(Category);
     CREATE INDEX IX_Service_Region     ON dbo.ServiceOption(Region);
     CREATE INDEX IX_Service_Available  ON dbo.ServiceOption(Available) WHERE Available = 1;
@@ -284,7 +210,7 @@ BEGIN
     CREATE INDEX IX_Service_PricePerPs ON dbo.ServiceOption(PricePerPerson);
 END;
 
--- === NEW: link tables (idempotent, no data loss) ===
+-- link tables 
 
 -- User ↔ Decor
 IF NOT EXISTS (SELECT 1 FROM sys.tables WHERE name='UserDecor' AND schema_id = SCHEMA_ID('dbo'))
@@ -333,16 +259,12 @@ BEGIN
     CREATE INDEX IX_UserServiceLink_Service  ON dbo.UserServiceLink(ServiceId);
     CREATE INDEX IX_UserServiceLink_Relation ON dbo.UserServiceLink(RelationType);
 END;
-
-
 """
-
 
 def main() -> None:
     db = DbGateway()
     db.execute(SCHEMA_SQL, commit=True)
     print("Polymorphic schema created successfully.")
-
 
 if __name__ == "__main__":
     main()

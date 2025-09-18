@@ -1,65 +1,24 @@
 """
-seed_data.py
-Seeds demo data into the Events app database.
+insert_users.py
+insert halls demo data into the database.
 
 What this script does:
-- Clears existing rows from the core tables (Users, Hall, Event, and the link tables).
-- Inserts a small set of demo users.
-- Inserts a few demo events referencing the inserted users.
+- Clears existing rows from the halls table.
 - Inserts a larger demo catalog of halls with photos and descriptions.
 
 Safety notes:
-- This script deletes all data from tables: EventService, UserService, Event, Hall, Users.
-  Make sure you are connected to the correct database before running.
-- Designed for development and demos; do not run against production data.
-
-Usage:
-    python seed_data.py
-
-Requirements:
-    - server.gateway.DBgateway.DbGateway must point to the target DB.
+- This script deletes all data from halls table.
 """
 
-from datetime import date, time
 from server.gateway.DBgateway import DbGateway
 
-
 def seed() -> None:
-    """
-    Populate the database with deterministic demo data.
-
-    Steps:
-      1) Wipe existing data from dependent tables to avoid FK conflicts.
-      2) Insert demo users.
-      3) Read back user IDs and build a name->id map.
-      4) Insert demo events referencing those user IDs.
-      5) Insert a catalog of demo halls (name, type, region, pricing, photo, etc.).
-    """
     db = DbGateway()
 
     # 1) Reset existing data (delete in FK-safe order)
-    for t in ("EventService", "UserService", "Event", "Hall", "Users"):
-        db.execute(f"IF OBJECT_ID('dbo.{t}', 'U') IS NOT NULL DELETE FROM dbo.{t};")
+    db.execute(f"IF OBJECT_ID('dbo.Hall', 'U') IS NOT NULL DELETE FROM dbo.Hall;")
 
-    # 2) Users
-    users = [
-        ("050-1111111", "Noa Hadad",       "hash:noa",  "Rehovot"),
-        ("050-2222222", "Dan Keminzky",    "hash:dan",  "Rishon Lezion"),
-        ("050-3333333", "Maya Merkovich",  "hash:maya", "Nes Ziona"),
-        ("050-4444444", "Amir Sharabi",    "hash:amir", "Gedera"),
-        ("050-5555555", "Lior Levy",       "hash:lior", "Jerusalem"),
-    ]
-    db.execute_many(
-        "INSERT INTO dbo.Users (Phone, Username, PasswordHash, Region) VALUES (?, ?, ?, ?);",
-        users
-    )
-
-    # 3) Map IDs: read back inserted users and build a lookup for FK references
-    user_rows = db.query("SELECT UserId, Username FROM dbo.Users;")
-    user_id = {row["Username"]: row["UserId"] for row in user_rows}
-
-    # 4) Halls (sample subset shown; extend as needed)
-    # === Halls (start of 50) ===
+    # 2) Halls
     halls = [
         ("Tel Aviv Loft 22", "Loft", 120, "Center", 32.0853, 34.7818,
          "Industrial-chic loft with high ceilings, urban brick walls, and stylish lighting. Perfect for boutique weddings, private parties, and modern product launches.",
@@ -320,8 +279,7 @@ def seed() -> None:
              pphour, ppday, ppperson, park, wheel, phone, email, website, photo)
         )
 
-    print(f"Bulk data seeding completed successfully with {len(halls)} halls.")
-
+    print(f"insert data seeding completed successfully with {len(halls)} halls.")
 
 if __name__ == "__main__":
     seed()

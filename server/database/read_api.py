@@ -152,92 +152,6 @@ def get_halls_filtered(
     sql += " ORDER BY h.HallName;"
     return db.query(sql, params)
 
-
-def get_events() -> List[Dict[str, Any]]:
-    """Fetch all events with manager username."""
-    sql = """
-    SELECT e.EventId,
-           e.EventDate,
-           CONVERT(NVARCHAR(8), e.EventTime, 108) AS EventTime,
-           e.EventType,
-           u.Username AS Manager
-    FROM dbo.Event e
-    INNER JOIN dbo.Users u ON u.UserId = e.ManagerUserId
-    ORDER BY e.EventDate, e.EventTime;
-    """
-    return db.query(sql)
-
-
-def get_user_services() -> List[Dict[str, Any]]:
-    """Return mapping of services offered by each user."""
-    sql = """
-    SELECT u.Username, us.ServiceType, us.ServiceKey
-    FROM dbo.UserService us
-    INNER JOIN dbo.Users u ON u.UserId = us.UserId
-    ORDER BY u.Username, us.ServiceType;
-    """
-    return db.query(sql)
-
-
-def report_users_with_services_and_events() -> List[Dict[str, Any]]:
-    """
-    Aggregated report:
-    For each user show region, services offered, and events managed.
-    """
-    sql = """
-    SELECT
-        u.UserId, u.Username, u.Phone, u.Region,
-        ISNULL((SELECT STRING_AGG(d.ServiceType, ', ')
-                FROM (SELECT DISTINCT us2.ServiceType
-                      FROM dbo.UserService us2
-                      WHERE us2.UserId = u.UserId) d),
-               'None') AS ServicesOffered,
-        ISNULL((SELECT STRING_AGG(d.EventLabel, ' | ')
-                FROM (SELECT DISTINCT CONVERT(NVARCHAR(30), e.EventDate) + ' ' + e.EventType AS EventLabel
-                      FROM dbo.Event e
-                      WHERE e.ManagerUserId = u.UserId) d),
-               'None') AS EventsManaged
-    FROM dbo.Users u
-    ORDER BY u.Username;
-    """
-    return db.query(sql)
-
-
-def report_events_with_services_and_manager() -> List[Dict[str, Any]]:
-    """
-    Aggregated report:
-    For each event show manager username and list of services attached.
-    """
-    sql = """
-    SELECT
-        e.EventId,
-        CONVERT(NVARCHAR(30), e.EventDate) AS EventDate,
-        CONVERT(NVARCHAR(8), e.EventTime, 108) AS EventTime,
-        e.EventType,
-        u.Username AS Manager,
-        ISNULL((SELECT STRING_AGG(d.ServiceType, ', ')
-                FROM (SELECT DISTINCT es.ServiceType
-                      FROM dbo.EventService es
-                      WHERE es.EventId = e.EventId) d),
-               'None') AS Services
-    FROM dbo.Event e
-    INNER JOIN dbo.Users u ON u.UserId = e.ManagerUserId
-    ORDER BY e.EventDate, e.EventTime;
-    """
-    return db.query(sql)
-
-
-def report_halls_with_region() -> List[Dict[str, Any]]:
-    """List halls by region, including capacity and pricing."""
-    sql = """
-    SELECT h.HallName, h.HallType, h.Region,
-           h.Capacity, h.PricePerPerson, h.PricePerHour, h.PricePerDay
-    FROM dbo.Hall h
-    ORDER BY h.Region, h.HallName;
-    """
-    return db.query(sql)
-
-
 def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
     """Lookup a single user by username."""
     sql = "SELECT * FROM dbo.Users WHERE Username = ?;"
@@ -714,16 +628,11 @@ def get_decor_prices(
 
 
 if __name__ == "__main__":
+    # Demo printing of queries
     print("decorators:"); print_table(get_decotators())
     print("services:"); print_table(get_services())
-    # Demo printing of queries
+    print("\nHalls:"); print_table(get_halls())
     print(get_decor_cards())
     print(get_user_by_user_name("Noa Hadad"))
     print("Users:"); print_table(get_users())
-    print("\nEvents:"); print_table(get_events())
-    print("\nUserServices:"); print_table(get_user_services())
-    print("\nReport: Users with services & events"); print_table(report_users_with_services_and_events())
-    print("\nReport: Events with services & manager"); print_table(report_events_with_services_and_manager())
-    print("\nHalls:"); print_table(get_halls())
-    print("\nReport: Halls with region"); print_table(report_halls_with_region())
     print("\nTables:"); print_table(get_tables_name())
