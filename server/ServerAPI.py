@@ -1,12 +1,12 @@
 # uvicorn ServerAPI:app --reload --port 8000
 """
 Events Backend (Demo) – FastAPI routes.
-queries are delegated to server.database.read_api;
-commands are delegated to server.database.insert_api.
+queries are delegated to server.database.query_api;
+commands are delegated to server.database.command_api.
 """
 from typing import Optional, Dict, Any, List
-import server.database.read_api as read_api
-from server.database import insert_api
+import server.database.query_api as query_api
+from server.database import command_api
 from server.external_services.coordinates.geocoding_client import get_address
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -24,18 +24,18 @@ app.add_middleware(
 @app.get("/DB/users/get_user_by_name/{user_name}")
 def get_user_by_user_name(user_name: str) -> Optional[Dict[str, Any]]:
     """Return a single user by username."""
-    user = read_api.get_user_by_user_name(user_name)
+    user = query_api.get_user_by_user_name(user_name)
     return user
 
 @app.get("/DB/users/insert_user/{phone}/{username}/{password_hash}/{region}")
 def insert_user(phone: str, username: str, password_hash: str, region: str) -> int:
     """Create a new user and return the inserted UserId."""
-    return insert_api.add_user(phone, username, password_hash, region)
+    return command_api.add_user(phone, username, password_hash, region)
 
 @app.get("/DB/decors/list")
 async def get_decors():
     """List decor cards with no filters."""
-    return read_api.get_decor_cards()
+    return query_api.get_decor_cards()
 
 @app.get("/DB/services/list")
 def list_services(
@@ -50,9 +50,9 @@ def list_services(
 ):
     """
     List service cards with optional filters/sorting/paging.
-    Query params mirror read_api.get_service_cards.
+    Query params mirror query_api.get_service_cards.
     """
-    return read_api.get_service_cards(
+    return query_api.get_service_cards(
         search=search,
         category=category,
         available=available,
@@ -66,12 +66,12 @@ def list_services(
 @app.get("/DB/decors/get/{decor_id}")
 def get_decor(decor_id: int):
     """Return a single decor item by DecorId."""
-    return read_api.get_decor_by_id(decor_id)
+    return query_api.get_decor_by_id(decor_id)
 
 @app.get("/DB/services/get/{service_id}")
 def get_service(service_id: int):
     """Return a single service by ServiceId."""
-    return read_api.get_service_by_id(service_id)
+    return query_api.get_service_by_id(service_id)
 
 @app.get("/DB/halls/get/{hall_id}")
 def get_hall(hall_id: int, resolveAddress: bool = True):
@@ -80,7 +80,7 @@ def get_hall(hall_id: int, resolveAddress: bool = True):
     If resolveAddress=True and hall has (Latitude, Longitude), add an 'Address' field
     using reverse geocoding; on failure, add 'AddressError' instead and still return the row.
     """
-    row = read_api.get_hall_by_id(hall_id)
+    row = query_api.get_hall_by_id(hall_id)
     if not row:
         return None
     if resolveAddress:
@@ -98,22 +98,22 @@ def get_hall(hall_id: int, resolveAddress: bool = True):
 @app.get("/DB/users/{user_id}/decor/used")
 def user_decor_used(user_id: int) -> List[Dict[str, Any]]:
     """List decor items linked to the user."""
-    return read_api.get_decor_used_by_user(user_id)
+    return query_api.get_decor_used_by_user(user_id)
 
 @app.get("/DB/users/{user_id}/services/used")
 def user_services_used(user_id: int) -> List[Dict[str, Any]]:
     """List services linked to the user."""
-    return read_api.get_services_used_by_user(user_id)
+    return query_api.get_services_used_by_user(user_id)
 
 @app.get("/DB/users/{user_id}/halls/used")
 def user_halls_used(user_id: int) -> List[Dict[str, Any]]:
     """List halls linked to the user."""
-    return read_api.get_halls_used_by_user(user_id)
+    return query_api.get_halls_used_by_user(user_id)
 
 @app.get("/DB/users/{user_id}/owned")
 def user_owned_items(user_id: int) -> List[Dict[str, Any]]:
     """List all assets owned by the user (union of Hall/Service/Decor)."""
-    return read_api.get_owned_items_by_user(user_id)
+    return query_api.get_owned_items_by_user(user_id)
 
 @app.get("/DB/decors/prices")
 def list_decor_prices(
@@ -128,9 +128,9 @@ def list_decor_prices(
 ):
     """
     List decor items with S/M/L prices + computed MidPrice.
-    Supports filters/sorting/paging (see read_api.get_decor_prices).
+    Supports filters/sorting/paging (see query_api.get_decor_prices).
     """
-    return read_api.get_decor_prices(
+    return query_api.get_decor_prices(
         search=search,
         category=category,
         available=available,
@@ -154,9 +154,9 @@ def list_halls(
 ):
     """
     List hall cards with optional filters (type, accessible, region, text),
-    sorting, and paging (see read_api.get_hall_cards).
+    sorting, and paging (see query_api.get_hall_cards).
     """
-    return read_api.get_hall_cards(
+    return query_api.get_hall_cards(
         search=search,
         hall_type=hall_type,
         accessible=accessible,
@@ -210,7 +210,7 @@ def create_decor(
         "CancellationPolicy": cancellation_policy,
         "Available": available,
     }
-    return insert_api.add_decor_option(data)
+    return command_api.add_decor_option(data)
 
 @app.post("/DB/user_decor/link")
 def link_user_decor(
@@ -218,4 +218,4 @@ def link_user_decor(
     decor_id: int = Body(..., alias="DecorId"),
     relation_type: str = Body("OWNER", alias="RelationType"),
 ) -> int:
-    return insert_api.link_user_decor(user_id, decor_id, relation_type)
+    return command_api.link_user_decor(user_id, decor_id, relation_type)
