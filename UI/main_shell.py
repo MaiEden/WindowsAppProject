@@ -62,9 +62,9 @@ from user_info.user_info_model import UserInfoModel
 from user_info.user_info_presenter import UserInfoPresenter
 
 # Decor price chart (MVP)
-from UI.decor_price.decor_price_view import DecorPriceView
-from UI.decor_price.decor_price_model import DecorPriceModel
-from UI.decor_price.decor_price_presenter import DecorPricePresenter
+from UI.graphs.decor_price_view import DecorPriceView
+from UI.graphs.decor_price_model import DecorPriceModel
+from UI.graphs.decor_price_presenter import DecorPricePresenter
 
 # --- Add Decor screen (imports) ---
 from UI.add_decor.add_decor_view import AddDecorView

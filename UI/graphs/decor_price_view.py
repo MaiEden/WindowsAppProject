@@ -1,22 +1,24 @@
-# UI/decor_price/decor_price_view.py
+# UI/graphs/decor_price_view.py
 from typing import List, Dict, Any, Optional
 
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSizePolicy,
     QScrollArea, QGridLayout
 )
-from PySide6.QtCore import Qt, QSize, QMargins
+from PySide6.QtCore import Qt, QMargins
 from PySide6.QtGui import QBrush, QColor, QFont
 from PySide6.QtCharts import (
     QChart, QChartView, QStackedBarSeries, QBarSet, QBarCategoryAxis, QValueAxis,
 )
 
 # ===== Tuning =====
-MAX_LINE_LEN = 12        # אורך שורה לפני שבירה
-MAX_LINES = 3            # מקס' שורות לתווית
+MAX_LINE_LEN = 12
+MAX_LINES = 3
+
 
 # ---------- helpers ----------
 def _wrap_words(text: str, max_line_len: int, max_lines: int) -> str:
+    """Word-wrap a string into ≤ max_lines, respecting max_line_len per line (ellipsis on overflow)."""
     words = (text or "").split()
     lines: List[str] = []
     cur = ""
@@ -40,7 +42,9 @@ def _wrap_words(text: str, max_line_len: int, max_lines: int) -> str:
         lines.append(cur)
     return "\n".join(lines[:max_lines])
 
+
 def _wrap_multiline(name: str, max_line_len: int = MAX_LINE_LEN, max_lines: int = MAX_LINES) -> str:
+    """Smart wrap: split by common separators into left/right parts; wrap left to 1 line, right to remaining lines."""
     s = (name or "").strip()
     if not s:
         return ""
@@ -54,37 +58,29 @@ def _wrap_multiline(name: str, max_line_len: int = MAX_LINE_LEN, max_lines: int 
                         _wrap_words(right, max_line_len, max_lines - 1)).strip()
     return _wrap_words(s, max_line_len, max_lines)
 
+
 def _fmt_currency(v: float) -> str:
+    """Format a number as Israeli Shekel (₪) rounded to an integer; fallback to ₪0 on errors."""
     try:
         return f"₪{int(round(float(v)))}"
     except Exception:
         return "₪0"
 
-def _calc_midprice(item: Dict[str, Any]) -> float:
-    """Medium > avg(S/L) > S or L > MidPrice > MinPrice > 0."""
-    p_s = item.get("PriceSmall")
-    p_m = item.get("PriceMedium")
-    p_l = item.get("PriceLarge")
-    if p_m is not None: return float(p_m)
-    if p_s is not None and p_l is not None: return (float(p_s) + float(p_l)) / 2.0
-    if p_s is not None: return float(p_s)
-    if p_l is not None: return float(p_l)
-    mp = item.get("MidPrice")
-    if mp is not None: return float(mp)
-    mn = item.get("MinPrice")
-    if mn is not None: return float(mn)
-    return 0.0
 
 def _ideal_bar_width_ratio(n_items: int, view_width_px: int) -> float:
-    """
-    רוחב עמודות 'יפה' כברירת מחדל, מצטמצם בהדרגה כשאין מקום.
-    """
-    if n_items <= 8: base = 0.60
-    elif n_items <= 15: base = 0.45
-    else: base = 0.32
-    if view_width_px < 820: base -= 0.05
-    if view_width_px < 680: base -= 0.05
+    """Heuristic bar width ratio based on number of items and view width; clamped to [0.25, 0.70]."""
+    if n_items <= 8:
+        base = 0.60
+    elif n_items <= 15:
+        base = 0.45
+    else:
+        base = 0.32
+    if view_width_px < 820:
+        base -= 0.05
+    if view_width_px < 680:
+        base -= 0.05
     return max(0.25, min(0.70, base))
+
 
 class _Card(QFrame):
     def __init__(self, parent=None):
@@ -102,11 +98,11 @@ class _Card(QFrame):
 # ---------- main view ----------
 class DecorPriceView(QWidget):
     """
-    - Scroll אנכי בלבד
-    - כרטיס 'Selected decor' (ללא תמונה) עם מחיר בינוני
-    - גרף עמודות מודגש (Stacked: אפור + כחול)
-    - ציר X רב־שורות ללא חיתוך
-    - קלפי תקציר: Lowest / Average / Highest
+    - Vertical-only scroll
+    - 'Selected decor' card (no image) with mid price
+    - Stacked bar chart (grey others + blue selected)
+    - Multi-line X axis labels without clipping
+    - Summary cards: Lowest / Average / Highest
     """
 
     def __init__(self) -> None:
@@ -117,7 +113,7 @@ class DecorPriceView(QWidget):
         # ===== Scroll container =====
         self._scroll = QScrollArea(self)
         self._scroll.setWidgetResizable(True)
-        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)  # אין גלילה אופקית
+        self._scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
 
         self._container = QWidget()
         self._root = QVBoxLayout(self._container)
@@ -144,12 +140,14 @@ class DecorPriceView(QWidget):
         self.card_selected = _Card()
         cs = QHBoxLayout(self.card_selected); cs.setContentsMargins(16, 16, 16, 16); cs.setSpacing(16)
 
+        # Star + focus name
         info_box = QVBoxLayout(); info_box.setSpacing(6)
         selected_row = QHBoxLayout(); selected_row.setSpacing(6)
         star = QLabel("★"); star.setStyleSheet("color:#f59e0b; font-size:18px;")
         self.sel_name = QLabel(""); self.sel_name.setStyleSheet("font-size:18px; font-weight:700; color:#111827;")
         selected_row.addWidget(star); selected_row.addWidget(self.sel_name); selected_row.addStretch(1)
 
+        # category + mid price
         meta_row = QHBoxLayout(); meta_row.setSpacing(8)
         self.sel_cat = QLabel(""); self.sel_cat.setStyleSheet(
             "background:#dbeafe; color:#1e40af; padding:2px 8px; border-radius:999px; font-size:12px;"
@@ -168,6 +166,7 @@ class DecorPriceView(QWidget):
         chart_card.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Preferred)
         cc = QVBoxLayout(chart_card); cc.setContentsMargins(16, 16, 16, 16); cc.setSpacing(12)
 
+        # chart header
         chart_head = QHBoxLayout(); chart_head.setSpacing(8)
         left = QVBoxLayout(); left.setSpacing(2)
         self.chart_title = QLabel("Price comparison — "); self.chart_title.setStyleSheet("font-size:16px; font-weight:600; color:#111827;")
@@ -188,10 +187,10 @@ class DecorPriceView(QWidget):
 
         self.chart_view = QChartView(self.chart)
         self.chart_view.setMinimumHeight(460)
-        self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # רספונסיבי
+        self.chart_view.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)  # responsive
         cc.addWidget(self.chart_view, 1)
 
-        # legend
+        # Chart legend (blue selected + grey others)
         legend_row = QHBoxLayout(); legend_row.setSpacing(18)
         dot_sel = QLabel(); dot_sel.setFixedSize(14, 14); dot_sel.setStyleSheet("background:#2563eb; border-radius:7px;")
         lb_sel = QLabel("Selected decor"); lb_sel.setStyleSheet("font-size:12px; color:#374151;")
@@ -229,29 +228,31 @@ class DecorPriceView(QWidget):
             focus_id: Optional[int],
             category: Optional[str],
             focus_item: Optional[Dict[str, Any]] = None,
-    ):
+    ) -> None:
+        """Render the chart and update all UI elements based on the provided data."""
+
         items = list(items or [])
         if not items:
             return
 
-        # Selected card
+        # Selected card (uses MidPrice computed by the Model)
         if focus_item:
             self.sel_name.setText(focus_item.get("DecorName") or focus_item.get("Name") or "")
             self.sel_cat.setText(category or "")
-            self.sel_price.setText(_fmt_currency(_calc_midprice(focus_item)))
+            self.sel_price.setText(_fmt_currency(float(focus_item.get("MidPrice", 0))))
         else:
             self.sel_name.setText("")
             self.sel_cat.setText(category or "")
             self.sel_price.setText("")
 
-        # Data
+        # Data for chart
         labels: List[str] = []
         values: List[float] = []
         focus_index: int = -1
         for idx, it in enumerate(items):
             nm = it.get("DecorName") or it.get("Name") or f"#{it.get('DecorId', idx+1)}"
             labels.append(_wrap_multiline(nm))
-            values.append(_calc_midprice(it))
+            values.append(float(it.get("MidPrice", 0)))
             if focus_id is not None and int(it.get("DecorId", -1)) == int(focus_id):
                 focus_index = idx
 
@@ -273,7 +274,7 @@ class DecorPriceView(QWidget):
         series = QStackedBarSeries()
         series.append(set_other); series.append(set_sel)
 
-        # רוחב עמודות – יפה כברירת מחדל, מצטמצם כשאין מקום
+        # Nice bar width
         view_w = max(self.chart_view.width(), 1)
         series.setBarWidth(_ideal_bar_width_ratio(n, view_w))
 
@@ -288,7 +289,7 @@ class DecorPriceView(QWidget):
         axis_x.setLabelsAngle(0)
 
         max_lines = max(lbl.count("\n") + 1 for lbl in labels)
-        est_h = int(16 + (max_lines * 14) + 10)  # גובה מוערך לתוויות X
+        est_h = int(16 + (max_lines * 14) + 10)  # extra bottom margin for multi-line labels
 
         axis_y = QValueAxis()
         axis_y.applyNiceNumbers()
@@ -301,11 +302,11 @@ class DecorPriceView(QWidget):
         self.chart.setAxisX(axis_x, series)
         self.chart.setAxisY(axis_y, series)
 
-        # >>> FIX: אין QMargins.adjusted ב-PySide6 – יוצרים מרג'ינס חדשים
+        # bottom margins to avoid clipping labels
         cur = self.chart.margins()
         self.chart.setMargins(QMargins(cur.left(), cur.top(), cur.right(), est_h))
 
-        # Summary
+        # Summary cards
         lo = min(values); hi = max(values)
         avg = sum(values) / max(1, len(values))
         self._set_stat(self.stat_low,  _fmt_currency(lo))
@@ -313,7 +314,7 @@ class DecorPriceView(QWidget):
         self._set_stat(self.stat_high, _fmt_currency(hi))
 
     # ---------- private ----------
-    def _set_stat(self, card: QFrame, text: str):
+    def _set_stat(self, card: QFrame, text: str) -> None:
         val = card.findChild(QLabel, "statVal")
         if val is None:
             val = card.findChildren(QLabel)[0]

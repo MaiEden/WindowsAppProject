@@ -1,9 +1,9 @@
 # UI/decor/decor_price_app.py runs the graphs
 import sys
 from PySide6.QtWidgets import QApplication
-from UI.decor_price.decor_price_model import DecorPriceModel
-from UI.decor_price.decor_price_view import DecorPriceView
-from UI.decor_price.decor_price_presenter import DecorPricePresenter
+from UI.graphs.decor_price_model import DecorPriceModel
+from UI.graphs.decor_price_view import DecorPriceView
+from UI.graphs.decor_price_presenter import DecorPricePresenter
 
 def main():
     app = QApplication.instance() or QApplication(sys.argv)
