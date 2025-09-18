@@ -175,6 +175,7 @@ class _MessageBubble(QWidget):
         self.sources = sources
         self.timestamp = timestamp or datetime.now()
 
+        # root layout
         container = QVBoxLayout(self)
         container.setContentsMargins(0, 6, 0, 6)
         container.setSpacing(2)
@@ -183,6 +184,7 @@ class _MessageBubble(QWidget):
         row = QHBoxLayout()
         row.setContentsMargins(0, 0, 0, 0)
 
+        # bubble frame
         self.bubble = QFrame()
         self.bubble.setObjectName(
             "BubbleTyping" if role == "typing" else ("BubbleUser" if role == "user" else "BubbleAssistant")
@@ -190,10 +192,12 @@ class _MessageBubble(QWidget):
         self.bubble.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Minimum)
         self.bubble.setFixedWidth(self.FIXED_W)
 
+        # bubble layout
         vb = QVBoxLayout(self.bubble)
         vb.setContentsMargins(12, 10, 12, 8)
         vb.setSpacing(6)
 
+        # bubble body (QTextBrowser for rich text, links, selectable)
         self.body = QTextBrowser()
         self.body.setOpenExternalLinks(True)
         self.body.setWordWrapMode(QTextOption.WordWrap)
@@ -203,10 +207,12 @@ class _MessageBubble(QWidget):
         self.body.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.body.setStyleSheet("background: transparent; border: none;")
 
+        # set HTML content
         html = _render_markdown(text)
         self.body.setHtml(MD_INLINE_CSS + html)
         vb.addWidget(self.body)
 
+        # add sources box if any
         if role == "assistant" and sources:
             src = QFrame(); src.setObjectName("Sources")
             src_layout = QVBoxLayout(src); src_layout.setContentsMargins(8,6,8,6)
@@ -286,6 +292,7 @@ class ChatView(QWidget):
         comp_l.setContentsMargins(20, 12, 20, 12)
         comp_l.setSpacing(12)
 
+        # Text input
         self.input = QTextEdit(objectName="Input")
         self.input.setPlaceholderText("Type a message... (Enter to send, Shift+Enter for newline)")
         self.input.setFixedHeight(110)
