@@ -473,4 +473,3 @@ class MainShell(QWidget):
 
         self._register_center_page(page_name, view)
         self.navigate(page_name)
-

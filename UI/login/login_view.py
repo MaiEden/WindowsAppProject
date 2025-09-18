@@ -1,9 +1,7 @@
 """
-View: UI only (no business logic)
-- Presenter connects handlers to these UI events
+View: UI only
 """
 from pathlib import Path
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QIcon, QPixmap
 from PySide6.QtWidgets import (
@@ -34,8 +32,7 @@ class LoginView(QWidget):
         super().__init__()
         self.setWindowTitle("Login Screen")
 
-        # size when window opens and minimum size
-        self.resize(520, 560)
+        # minimum size
         self.setMinimumSize(340, 480)
 
         self._build_ui()
@@ -70,7 +67,7 @@ class LoginView(QWidget):
 
         # Right: icon
         self.icon_label = QLabel()
-        icon_size = 120
+        icon_size = 130
 
         # Load icon from file
         icon_path = BASE_DIR / "style&icons" / "EventPlannerLogo.png"

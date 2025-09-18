@@ -1,6 +1,5 @@
 """
 AddDecorPresenter
------------------
 - Validates form input and returns a field->error map.
 - Shows an error summary + inline field errors + red highlight.
 - Calls the model for: create decor, link to current user, optional default owner.
@@ -14,7 +13,6 @@ CATEGORIES = [
     "Balloons","Flowers","Tableware","Linens","Lighting",
     "Backdrop","CakeStands","Props","Centerpieces","Signage"
 ]
-
 
 class AddDecorPresenter(QObject):
     def __init__(self, model: AddDecorModel, view, current_username: str, on_success=None) -> None:
@@ -39,11 +37,6 @@ class AddDecorPresenter(QObject):
     def _validate(self, data: Dict[str, Any]) -> Dict[str, str]:
         """
         Returns {field_key: error_text} where keys match what the view expects.
-
-        Required:
-        - DecorName
-        - Category
-        - At least one price > 0 among PriceSmall/PriceMedium/PriceLarge
         """
         errors: Dict[str, str] = {}
 
@@ -74,7 +67,6 @@ class AddDecorPresenter(QObject):
             parts = email.split("@")
             if len(parts) != 2 or "." not in parts[1]:
                 errors["ContactEmail"] = "Email looks invalid."
-
         return errors
 
     def _price_hint(self, prices: Tuple[float, float, float]) -> str:

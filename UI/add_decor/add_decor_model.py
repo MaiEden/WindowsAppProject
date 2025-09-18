@@ -1,20 +1,13 @@
 """
 AddDecorModel
--------------
 Responsibilities:
-- Look up (or create) the default OWNER user (per your MVP spec).
-- Create a decor option via the server API (returns DecorId).
-- Link the caller user <-> decor using RelationType (OWNER/USER).
-
-Notes:
-- This model only ADDS methods; it does not replace your existing modules.
-- It uses `server_access` for HTTP calls, matching your project's pattern.
+- Look up (or create) the default OWNER user.
+- Create a decor option via the server API.
+- Link the caller user <-> decor using RelationType.
 """
-
 from typing import Optional, Dict, Any
 import requests
 from UI import server_access
-
 
 class AddDecorModel:
     def __init__(self, default_owner_username: str = "Noa Hadad"):
@@ -23,8 +16,7 @@ class AddDecorModel:
     # -------- Users --------
     def get_user_by_name(self, username: str) -> Optional[Dict[str, Any]]:
         """
-        Uses your existing GET endpoint:
-        /DB/users/get_user_by_name/{username}
+        Uses /DB/users/get_user_by_name/{username} to get the user
         """
         path = f"/DB/users/get_user_by_name/{requests.utils.quote(username)}"
         return server_access.request(path)
@@ -39,7 +31,6 @@ class AddDecorModel:
         if u and isinstance(u, dict) and u.get("UserId"):
             return int(u["UserId"])
 
-        # Demo endpoint (your codebase uses GET for inserts in a few places)
         path = (
             f"/DB/users/insert_user/"
             f"{requests.utils.quote(phone)}/"
