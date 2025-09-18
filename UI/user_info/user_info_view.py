@@ -1,4 +1,13 @@
 # UI/user_info/user_info_view.py
+"""
+Qt view for the "User Info" page.
+
+- Header with avatar/name/meta.
+- Sections rendered as responsive grids of compact cards.
+- "Owned items" supports a graph button per card and an "Add new" card.
+- Styles loaded from a local QSS file.
+"""
+
 from pathlib import Path
 from typing import List, Dict, Optional
 
@@ -10,7 +19,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QToolButton, QSpacerItem, QGridLayout, QAbstractScrollArea
 )
 
-# Image loading helper (כפי שכבר בשימוש אצלך)
+# Image loading helper
 from server.database.image_loader import load_into
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -23,13 +32,15 @@ LOCAL_QSS = BASE_DIR / "user_info_view.qss"
 # ------------------------------
 
 def _section_label(text: str) -> QLabel:
+    """Create a section header label (styled via QSS)."""
     lbl = QLabel(text); lbl.setObjectName("SectionLabel")
     return lbl
 
 
 def _render_svg_to_icon(svg_data: bytes, size: int = 22) -> QIcon:
-    """רנדר מדויק (חד) מסמל SVG לאייקון לפי DPI, ללא פיקסול."""
-    # דואגים לפי DPI הנוכחי
+    """
+    Render crisp SVG to an icon (graph) of the given size (DPI aware, anti-aliased).
+    """
     pix = QPixmap(size, size)
     pix.fill(Qt.transparent)
     p = QPainter(pix)
@@ -55,7 +66,13 @@ GRAPH_SVG = b"""
 # ------------------------------
 
 class CompactCard(QFrame):
-    """כרטיס קומפקטי לרשת. האייקון מוצג רק ב-Owned (show_graph=True)."""
+    """
+    Compact card used in grids.
+    Signals:
+        clicked(int): Emitted on left-click with item id.
+        graphClicked(int): Emitted when the graph button is clicked (owned section only).
+    VM keys typically used: id, photo, title/name, subtitle, region, pill.
+    """
     clicked = Signal(int)
     graphClicked = Signal(int)
 
@@ -63,6 +80,11 @@ class CompactCard(QFrame):
     CARD_H = 300
 
     def __init__(self, vm: Dict, show_graph: bool = False):
+        """
+        Args:
+            vm: View-model dict with fields used to render the card.
+            show_graph: Whether to show the small graph button (owned items).
+        """
         super().__init__(objectName="Card")
         self.vm = vm
         self.show_graph = show_graph
@@ -75,6 +97,7 @@ class CompactCard(QFrame):
         self._build()
 
     def _build(self):
+        """Build the internal layout: image, title/subtitle, and bottom meta row."""
         lay = QVBoxLayout(self)
         lay.setContentsMargins(10, 8, 10, 10)
         lay.setSpacing(6)
@@ -124,17 +147,20 @@ class CompactCard(QFrame):
         lay.addLayout(meta)
 
     def mouseReleaseEvent(self, e):
+        """Left-click release → emits clicked(int) carrying the card's id."""
         if e.button() == Qt.LeftButton:
             self.clicked.emit(int(self.vm.get("id") or -1))
         super().mouseReleaseEvent(e)
 
 
 class AddNewCard(QFrame):
+    """Card-sized '+' shortcut. Emits 'clicked()' when pressed."""
     clicked = Signal()
     CARD_W = CompactCard.CARD_W
     CARD_H = CompactCard.CARD_H
 
     def __init__(self):
+        """Create a centered '+' card used at the end of the 'Owned items' section."""
         super().__init__(objectName="Card")
         self.setFixedSize(self.CARD_W, self.CARD_H)
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
@@ -144,10 +170,12 @@ class AddNewCard(QFrame):
         lay.setContentsMargins(10, 8, 10, 10)
         lay.setSpacing(6)
 
+        # Icon
         icon = QLabel("+", alignment=Qt.AlignCenter)
         icon.setFixedHeight(180)
         icon.setObjectName("AddIcon")
 
+        # Title + subtitle
         title = QLabel("Add new", objectName="CardTitle"); title.setAlignment(Qt.AlignCenter)
         subtitle = QLabel("Owned item shortcut", objectName="CardSubtitle"); subtitle.setAlignment(Qt.AlignCenter)
 
@@ -157,6 +185,7 @@ class AddNewCard(QFrame):
         lay.addStretch(1)
 
     def mouseReleaseEvent(self, e):
+        """Left-click release → emits clicked(int) carrying the card's id."""
         if e.button() == Qt.LeftButton:
             self.clicked.emit()
         super().mouseReleaseEvent(e)
@@ -167,10 +196,27 @@ class AddNewCard(QFrame):
 # ------------------------------
 
 class MinimalSection(QWidget):
+    """
+    Collapsible section with a responsive card grid.
+
+    Signals:
+        addNewRequested(): Request to create/add a new owned item.
+        cardGraphRequested(int): Ask to open a price chart for a given decorId.
+
+    Public API:
+        set_content(cards: List[Dict], include_add_card: bool = False)
+        set_count(n: int)
+    """
     addNewRequested = Signal()
     cardGraphRequested = Signal(int)  # decorId
 
     def __init__(self, title: str, *, start_open: bool = True, show_graph: bool = False):
+        """
+        Args:
+            title: Section title (will display as "Title · N").
+            start_open: Whether the section body starts expanded.
+            show_graph: Whether to display the small graph button in cards.
+        """
         super().__init__()
         self._open = start_open
         self._cards_cache: List[Dict] = []
@@ -179,18 +225,22 @@ class MinimalSection(QWidget):
 
         root = QVBoxLayout(self); root.setContentsMargins(0, 0, 0, 0); root.setSpacing(8)
 
+        # Header with toggle button and title+count
         header = QFrame()
         header.setFixedHeight(36)
         h = QHBoxLayout(header); h.setContentsMargins(12, 8, 12, 8); h.setSpacing(8)
 
+        # Toggle button
         self.btn = QToolButton(text=("∨" if start_open else ">"))
         self.btn.setCursor(Qt.PointingHandCursor); self.btn.setAutoRaise(True)
         self.btn.setFixedSize(24, 24)
         self.btn.clicked.connect(self.toggle)
 
+        # Title label
         self.title = QLabel(f"{title} · 0")
         h.addWidget(self.btn, 0); h.addWidget(self.title, 0); h.addStretch(1)
 
+        # Body with grid layout
         self.body = QWidget()
         self.grid = QGridLayout(self.body)
         self.grid.setContentsMargins(0, 8, 0, 0)
@@ -203,27 +253,34 @@ class MinimalSection(QWidget):
         self.body.setVisible(self._open)
 
     def set_count(self, n: int):
+        """Update the number displayed in the header (e.g., 'Decorations · 7')."""
         base = self.title.text().split("·")[0].strip()
         self.title.setText(f"{base} · {n}")
 
     def set_content(self, cards: List[Dict], *, include_add_card: bool = False):
+        """
+        Replace the section content with a new list of card view-models.
+        """
         self._cards_cache = cards.copy() if cards else []
         if include_add_card:
             self._cards_cache.append({"__add_card__": True})
         self._rebuild_grid(force=True)
 
     def _calc_cols(self) -> int:
+        """Compute the number of columns based on current width and card width."""
         parent_width = self.body.width() or self.width() or 800
         card_width = CompactCard.CARD_W
         return max(1, (parent_width - 40) // card_width)
 
     def _find_scroll_area(self) -> Optional[QAbstractScrollArea]:
+        """Find the nearest parent QScrollArea (to preserve vertical scroll position)."""
         p = self.parent()
         while p is not None and not isinstance(p, QAbstractScrollArea):
             p = p.parent()
         return p
 
     def _clear_grid(self) -> None:
+        """Remove all widgets from the grid and delete them."""
         while self.grid.count():
             item = self.grid.takeAt(0)
             w = item.widget()
@@ -231,6 +288,13 @@ class MinimalSection(QWidget):
                 w.setParent(None); w.deleteLater()
 
     def _rebuild_grid(self, force: bool = False):
+        """
+        Rebuild the grid when content/geometry changes.
+
+        - Calculates columns; skips a rebuild if not needed.
+        - Preserves vertical scroll position.
+        - Populates with CompactCard/AddNewCard widgets.
+        """
         cols = self._calc_cols()
         if not force and self._last_cols == cols:
             logical = len([c for c in self._cards_cache if not c.get("__add_card__")])
@@ -238,6 +302,7 @@ class MinimalSection(QWidget):
             return
         self._last_cols = cols
 
+        # Preserve vertical scroll position
         sa = self._find_scroll_area()
         vbar = sa.verticalScrollBar() if sa else None
         old_pos = vbar.value() if vbar else None
@@ -245,6 +310,7 @@ class MinimalSection(QWidget):
         self.body.setUpdatesEnabled(False)
         self._clear_grid()
 
+        # Populate grid
         row = col = 0
         logical = 0
         for vm in self._cards_cache:
@@ -264,9 +330,10 @@ class MinimalSection(QWidget):
         self.set_count(logical)
         self.body.setUpdatesEnabled(True)
         if vbar is not None and old_pos is not None:
-            QTimer.singleShot(0, lambda: vbar.setValue(old_pos))
+            QTimer.singleShot(0, lambda: vbar.setValue(old_pos))  # restore scroll
 
     def toggle(self):
+        """Expand/collapse the section body, forcing a small rebuild after expansion."""
         self._open = not self._open
         self.btn.setText("∨" if self._open else ">")
         self.body.setVisible(self._open)
@@ -274,6 +341,7 @@ class MinimalSection(QWidget):
             QTimer.singleShot(50, lambda: self._rebuild_grid(force=True))
 
     def resizeEvent(self, e):
+        """On resize: schedule a delayed rebuild when open and content exists."""
         super().resizeEvent(e)
         if self._open and self._cards_cache:
             QTimer.singleShot(50, self._rebuild_grid)
@@ -284,11 +352,27 @@ class MinimalSection(QWidget):
 # ------------------------------
 
 class UserInfoView(QWidget):
+    """
+    Top-level view for the User Info page.
+
+    Signals:
+        refreshRequested
+        addDecorClicked
+        ownedGraphClicked(int)
+
+    Presenter-facing API:
+        set_user_header(name, phone, region, avatar_url=None)
+        show_decor_cards(items)
+        show_service_cards(items)
+        show_hall_cards(items)
+        show_owned_cards(items)
+    """
     refreshRequested = Signal()
     addDecorClicked = Signal()
     ownedGraphClicked = Signal(int)  # decorId
 
     def __init__(self):
+        """Set up the window, build the UI, and load the local stylesheet."""
         super().__init__()
         self.setWindowTitle("User Info")
         self.resize(1000, 700)
@@ -297,6 +381,15 @@ class UserInfoView(QWidget):
 
     # API from presenter
     def set_user_header(self, name: str, phone: str, region: str, avatar_url: Optional[str] = None):
+        """
+        Set the header (name + 'phone · region') and optionally load an avatar image.
+
+        Args:
+            name: Display name.
+            phone: User phone number (optional).
+            region: User region (optional).
+            avatar_url: Optional image URL to load into the avatar.
+        """
         self.name.setText(name or "")
         parts = [p for p in [phone.strip() if phone else "", region.strip() if region else ""] if p]
         self.meta.setText(" · ".join(parts))
@@ -310,6 +403,7 @@ class UserInfoView(QWidget):
 
     # Build
     def _build(self) -> None:
+        """Create the full page layout: header, sections (recently used + owned), and wire signals."""
         scroll = QScrollArea(); scroll.setWidgetResizable(True); scroll.setFrameShape(QFrame.NoFrame)
         content = QWidget(); scroll.setWidget(content)
 
@@ -320,10 +414,12 @@ class UserInfoView(QWidget):
         top = QFrame(objectName="TopHeader")
         tl = QHBoxLayout(top); tl.setContentsMargins(16, 12, 16, 12); tl.setSpacing(16)
 
+        # Avatar
         self.avatar = QLabel("👤", alignment=Qt.AlignCenter)
         self.avatar.setFixedSize(64, 64)
         self.avatar.setStyleSheet("border-radius:32px; background:#e5e7eb; font-size:28px;")
 
+        # Name + meta
         info = QVBoxLayout(); info.setSpacing(2)
         self.name = QLabel("", objectName="HeaderName")
         self.meta = QLabel("", objectName="HeaderMeta")
@@ -345,13 +441,13 @@ class UserInfoView(QWidget):
         self.sec_owned   = MinimalSection("Owned items",  start_open=True, show_graph=True)
         lay.addWidget(self.sec_owned)
 
-        # העברת הסיגנל של הגרף החוצה
+        # expose signals outward
         self.sec_owned.cardGraphRequested.connect(self.ownedGraphClicked)
         self.sec_owned.addNewRequested.connect(self.addDecorClicked.emit)
-
 
         lay.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
     def _load_qss(self):
+        """Load local stylesheet (user_info_view.qss) if present."""
         if LOCAL_QSS.exists():
             self.setStyleSheet(LOCAL_QSS.read_text(encoding="utf-8"))

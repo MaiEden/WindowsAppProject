@@ -1,18 +1,27 @@
-# user_info_presenter.py
+# user_info_presenter.py — minimal docs
+# Presenter for the "User Info" screen (MVP).
+# - Orchestrates Model (data fetching) and View (rendering).
+# - Loads a user by username, populates header and section cards.
+
 from typing import Optional
 from .user_info_model import UserInfoModel
 from .user_info_view import UserInfoView
 
 class UserInfoPresenter:
+
     def __init__(self, model: UserInfoModel, view: UserInfoView):
+        """Store references to the Model (data) and the View (UI)."""
         self.m = model
         self.v = view
-        # Future: wire signals if needed (refresh, clicks to open details, etc.)
+        # Future: connect signals (refresh, click handlers, etc.)
 
-    def start(self, username: str):
+    def start(self, username: str) -> None:
+        """
+        Load user data and render the screen.
+        """
         user = self.m.get_user(username)
         if not user:
-            # empty state
+            # Empty state
             self.v.set_user_header(username, "", "")
             self.v.show_decor_cards([])
             self.v.show_service_cards([])
@@ -28,7 +37,7 @@ class UserInfoPresenter:
         halls = self.m.get_halls_used(uid)
         owned = self.m.get_owned_items(uid)
 
-        # Add pill labels for used sections (owned already has pill in SQL)
+        # Mark used sections with a small pill label (owned already includes it from SQL).
         for it in decs:
             it["pill"] = "Decor"
         for it in svcs:

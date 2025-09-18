@@ -1,18 +1,18 @@
 /* ===== Scope: UserInfoView only ===== */
 UserInfoView {
-    background: #F3F4F6;            /* אפור עדין */
+    background: #F3F4F6;            /* light gray */
 }
 
 /* ===== Section labels: "Recently used", "Owned by me" ===== */
 QLabel#SectionLabel {
     color: #111827;
-    font-size: 16px;                /* גדול יותר */
+    font-size: 16px;
     font-weight: 700;
     margin: 8px 4px 4px 4px;
 }
 
 /* ===== MinimalSection header & arrows ===== */
-MinimalSection QFrame {             /* שורת הכותרת של הסקשן */
+MinimalSection QFrame {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;
     border-radius: 10px;
@@ -22,45 +22,40 @@ MinimalSection QFrame:hover {
     background: #F8FAFC;
 }
 
-/* החץ (QToolButton) – נשאר טקסטואלי, אבל נראה נקי ונעים */
+
 MinimalSection QToolButton {
     border: none;
     background: transparent;
     padding: 2px 6px;
     margin-right: 2px;
     color: #6B7280;
-    font-size: 14px;                /* בולט יותר */
+    font-size: 14px;
     font-weight: 700;
     border-radius: 6px;
 }
 MinimalSection QToolButton:hover {
-    background: #EEF2FF;            /* היילייט עדין */
+    background: #EEF2FF;
     color: #374151;
 }
 
-/* ===== Top header (כרטיס המשתמש) – צל חלש וקצר/או ללא צל כלל ===== */
+/* ===== Top header ===== */
 #TopHeader {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
-    /* אין צל בקוד – אם תרצי אפקט עדין: */
-    /* box-shadow לא קיים ב-QSS, אז נשארים עם גבול בלבד */
 }
 #HeaderName { font-size: 18px; font-weight: 700; color:#111827; }
 #HeaderMeta { font-size: 13px; color:#6B7280; }
 
-/* ===== Cards (כולל AddNew) – בלי צל, יישור שמאלה נקבע בקוד ===== */
 QFrame#Card {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;
     border-radius: 12px;
 }
-/* Hover עדין במקום האנימציה: שינוי צבע גבול ורקע */
 QFrame#Card:hover {
     border: 1px solid #93C5FD;      /* sky-300 */
     background: #F8FAFC;            /* slate-50 */
 }
-/* תוכן הכרטיס */
 QLabel#CardTitle    { font-size: 15px; color:#111827; font-weight:600; }
 QLabel#CardSubtitle { font-size: 12px; color:#6B7280; }
 QLabel#CardImage    {
@@ -68,7 +63,6 @@ border-radius: 8px;
 background:#F3F4F6;
 }
 
-/* תגיות קטנות */
 QLabel#Region { color:#6B7280; font-size: 12px; }
 QLabel#Pill[ok=\"true\"] {
     color:#065F46;
@@ -78,7 +72,7 @@ QLabel#Pill[ok=\"true\"] {
     padding: 2px 10px;
     font-size: 11px;
 }
-/* אייקון ה-+ בכרטיס הוספה */
+
 QLabel#AddIcon {
     font-size: 40px; color: #6B7280;
     border: 2px dashed #D1D5DB;
@@ -86,11 +80,11 @@ QLabel#AddIcon {
     background: #FAFAFA;
 }
 
-/* נטרול גבולות/רקעים שנמרחו מכלליות */
 UserInfoView QLabel {
     border: none;
     background: transparent;
 }
+
 /* ===== Base card ===== */
 #Card {
   background: #fff;
