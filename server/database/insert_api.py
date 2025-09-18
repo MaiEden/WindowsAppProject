@@ -1,9 +1,12 @@
-import pyodbc
-from typing import List, Dict, Any, Optional, Sequence
-from decimal import Decimal
+"""
+class for commands
+"""
+from typing import Dict, Any
 from server.gateway.DBgateway import DbGateway
 
 db = DbGateway()
+
+# Add new user into DB
 def add_user(
     phone: str,
     username: str,
@@ -15,6 +18,7 @@ def add_user(
     params = (phone, username, password_hash, region)
     return db.execute(sql, params)
 
+# Add new decoration into DB
 def add_decor_option(d: Dict[str, Any]) -> int:
     cols = [
         "DecorName","Category","Theme","Description",
@@ -32,11 +36,12 @@ def add_decor_option(d: Dict[str, Any]) -> int:
     """
     params = tuple(d.get(c) for c in cols)
 
-    rows = db.query(sql, params)               # returns list[dict]
+    rows = db.query(sql, params)
     if not rows or "DecorId" not in rows[0]:
         raise Exception("Insert DecorOption failed: no id returned")
     return int(rows[0]["DecorId"])
 
+# Connect decor and user
 def link_user_decor(user_id: int, decor_id: int, relation: str = "OWNER") -> int:
     sql = "INSERT INTO dbo.UserDecor (UserId, DecorId, RelationType) VALUES (?, ?, ?);"
     return db.execute(sql, (user_id, decor_id, relation))
