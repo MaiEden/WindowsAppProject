@@ -1,6 +1,4 @@
-# UI/graphs/decor_price_view.py
 from typing import List, Dict, Any, Optional
-
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFrame, QSizePolicy,
     QScrollArea, QGridLayout
@@ -14,7 +12,6 @@ from PySide6.QtCharts import (
 # ===== Tuning =====
 MAX_LINE_LEN = 12
 MAX_LINES = 3
-
 
 # ---------- helpers ----------
 def _wrap_words(text: str, max_line_len: int, max_lines: int) -> str:
