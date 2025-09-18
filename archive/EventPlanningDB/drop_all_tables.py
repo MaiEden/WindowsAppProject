@@ -1,16 +1,11 @@
 """
 drop_all_tables.py
-Wipes the database schema by dropping all foreign keys and all user tables in the `dbo` schema.
+Wipes the database schema by dropping all foreign keys and all tables in the `dbo` schema.
 
 WARNING:
 - This operation is IRREVERSIBLE.
 - It removes every foreign key and drops every table under `dbo`.
 - Make a full backup before running, and ensure you're pointing to the correct database.
-
-Usage:
-    python drop_all_tables.py
-Requirements:
-    - `server.gateway.DBgateway.DbGateway` must be configured to connect to the target DB.
 """
 
 from server.gateway.DBgateway import DbGateway
@@ -41,7 +36,6 @@ def main() -> None:
     db = DbGateway()
     db.execute(SQL, commit=True)
     print("All dbo tables dropped successfully.")
-
 
 if __name__ == "__main__":
     main()
