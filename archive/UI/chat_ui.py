@@ -34,7 +34,7 @@ THEME = {
     "danger": "#EF4444",
     # higher-contrast bubbles (still soft/modern)
     "userBubble": "#E5E7EB",     # gray-200
-    "assistantBubble": "#BFDBFE", # blue-200
+    "assistantBubble": "#BFDBFE",  # blue-200
     "typingBubble": "#BFDBFE",   # blue-200
     "radius": "18px",
     "font": "Segoe UI, Arial"
@@ -101,11 +101,16 @@ except Exception as e:
     print(json.dumps({{"ok": False, "error": str(e) + "\\n" + traceback.format_exc()}}))
 """
 
+
+# ---------------------------
+# Worker thread to run external Python helper
+# ---------------------------
 class ExternalAskWorker(QThread):
     finished = Signal(str, str, str)  # question, answer, error
     def __init__(self, python_exe: str, question: str, model: str, host: str, cache_dir: str):
         super().__init__(); self.python_exe=python_exe; self.question=question
-        self.model=model; self.host=host; self.cache_dir=cache_dir
+        self.model=model; self.host=host; self.cache_dir = cache_dir
+
     def run(self):
         try:
             code = build_inline_runner(self.question, self.model, self.host, self.cache_dir)
@@ -215,8 +220,17 @@ class MessageBubble(QWidget):
         safe = safe.replace("\n", "<br>")
         return f"<div style='font-size:14px; line-height:1.5'>{safe}</div>"
 
+
 # ---------------------------
-# Settings dialog (kept for Python/model/host/cache)
+# Settings dialog (modal)
+# - Edits runtime config for the external LLM runner:
+#   Python executable, model name, Ollama host, cache directory.
+# - Prefills inputs with provided defaults; returns trimmed strings via values().
+# - Layout: QFormLayout + QDialogButtonBox(Ok/Cancel).
+# - Usage:
+#     dlg = SettingsDialog(py, model, host, cache, parent)
+#     if dlg.exec() == QDialog.Accepted:
+#         py, model, host, cache = dlg.values()
 # ---------------------------
 class SettingsDialog(QDialog):
     def __init__(self, python_exe: str, model: str, host: str, cache_dir: str, parent=None):
@@ -256,7 +270,7 @@ class ChatWindow(QMainWindow):
         self.python_exe = sys.executable
         self.model = "gemma:2b-instruct"
         self.ollama_host = "http://localhost:11434"
-        self.cache_dir = "multi_source_cache"
+        self.cache_dir = "../../server/agent/multi_source_cache"
 
         # Messages area
         self.scroll = QScrollArea(); self.scroll.setWidgetResizable(True)

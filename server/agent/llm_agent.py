@@ -2,29 +2,31 @@
 import os
 import re
 import json
-import time
 import hashlib
 import requests
 from pathlib import Path
 from typing import List, Dict, Any, Tuple
+
 # Embeddings + LLM
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_ollama import OllamaLLM
+
 # Loaders
 from langchain_community.document_loaders import PDFPlumberLoader, TextLoader
 
-# Text splitter (מהיר)
+# Text splitter
 try:
     from langchain_text_splitters import RecursiveCharacterTextSplitter
 except Exception:
     from langchain.text_splitter import RecursiveCharacterTextSplitter
+
 # Vector DB + Retriever
 from langchain_community.vectorstores import FAISS
 from langchain_core.prompts import ChatPromptTemplate
 from langchain.chains.combine_documents import create_stuff_documents_chain
 from langchain.chains import create_retrieval_chain
 
-HEB = re.compile(r'[\u0590-\u05FF]')  #Unicode for Hebrew
+HEB = re.compile(r'[\u0590-\u05FF]')  # Unicode for Hebrew
 
 
 def hebrew_visual_to_logical(text: str) -> str:
@@ -362,68 +364,4 @@ class MultiPDFRAGAssistant:
             return "no answer found."
         return f"{answer}\n\n{sources_line}"
 
-    def ask_with_sources(self, question: str) -> Dict[str, Any]:
-        if not self.rag_chain:
-            return {"error": "Not initialized"}
-        res = self.rag_chain.invoke({"input": question})
-        ctx_docs = res.get("context", [])
-        files = [(d.metadata.get("source_file", "Unknown"), d.metadata.get("page")) for d in ctx_docs]
-        return {
-            "question": question,
-            "answer": res.get("answer", ""),
-            "sources": files,
-            "num_context_docs": len(ctx_docs),
-        }
 
-
-# ------------------ main ------------------ #
-def main():
-    source_files = [
-        "42 tips - Google Docs.pdf",
-        "Bar Mitzva.pdf",
-        "Bat Mitzva.pdf",
-        "plaining the best event.pdf",
-        "Winter bachelorette party.pdf",
-        "צק ליסט למסיבת רווקות מושלמת - Google Docs.pdf",
-        "טיפים לאירגון אירועים.pdf",
-        "טיפים לחתונות.pdf",
-        "טיפים לימי הולדת.pdf",
-        "bar_mitzva_checklist_he.md",
-        "hafrashat_challah_guide_he.md",
-    ]
-
-    # filter out files that do not exist
-    source_files = [p for p in source_files if os.path.exists(p)]
-    print("loading the following files", json.dumps(source_files, ensure_ascii=False, indent=2))
-
-    assistant = MultiPDFRAGAssistant(
-        source_paths=source_files,
-        ollama_host="http://localhost:11434",
-        model="gemma:2b-instruct",
-        cache_dir="multi_source_cache",
-        force_rebuild=False,  # set to True to force rebuild
-    )
-
-    if not assistant.initialize():
-        print("Initialization failed.")
-        return
-
-    print("\n============================================================")
-    print("Multi-document RAG Assistant – Interactive Mode (type 'exit' to quit)")
-    print("============================================================")
-
-    try:
-        while True:
-            q = input("Your question: ").strip()
-            if q.lower() in ["exit", "quit", "סיום", "יציאה"]:
-                break
-            if not q:
-                continue
-            ans = assistant.ask(q)
-            print("\n Answer: \n" + ans)
-    except KeyboardInterrupt:
-        pass
-
-
-if __name__ == "__main__":
-    main()
