@@ -39,7 +39,7 @@ from decorator_list.decor_list_view import DecorListView
 from decorator_list.decor_list_model import DecorListModel
 from decorator_list.decor_list_presenter import DecorListPresenter
 
-# ---------- Details (NEW) ----------
+# ---------- Details ----------
 # Halls
 from halls_list.hall_details_view import HallDetailsView
 from halls_list.hall_details_model import HallDetailsModel
@@ -66,11 +66,10 @@ from UI.graphs.decor_price_view import DecorPriceView
 from UI.graphs.decor_price_model import DecorPriceModel
 from UI.graphs.decor_price_presenter import DecorPricePresenter
 
-# --- Add Decor screen (imports) ---
+# --- Add Decor screen ---
 from UI.add_decor.add_decor_view import AddDecorView
 from UI.add_decor.add_decor_model import AddDecorModel
 from UI.add_decor.add_decor_presenter import AddDecorPresenter
-
 
 # ---------- Helpers ----------
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
@@ -93,7 +92,6 @@ def circle_icon_button(char: str, tooltip: str) -> QToolButton:
         QToolButton:disabled{ opacity: .35; }
     """)
     return b
-
 
 # ---------- AppWindow ----------
 class AppWindow(QMainWindow):
@@ -130,7 +128,6 @@ class AppWindow(QMainWindow):
         w = self._pages.get(name)
         if w is not None:
             self._stack.setCurrentWidget(w)
-
 
 # ---------- MainShell ----------
 class MainShell(QWidget):
@@ -275,7 +272,7 @@ class MainShell(QWidget):
         halls_p.start()
         self._presenters.append(halls_p)
         self._register_center_page("halls", halls_v)
-        halls_v.cardClicked.connect(self.open_hall_details)        # NEW
+        halls_v.cardClicked.connect(self.open_hall_details)
 
         # Services (list)
         svc_v = ServiceListView()
@@ -283,7 +280,7 @@ class MainShell(QWidget):
         svc_p.start()
         self._presenters.append(svc_p)
         self._register_center_page("services", svc_v)
-        svc_v.cardClicked.connect(self.open_service_details)       # NEW
+        svc_v.cardClicked.connect(self.open_service_details)
 
         # Decorations (list)
         dec_v = DecorListView()
@@ -291,7 +288,7 @@ class MainShell(QWidget):
         dec_p.start()
         self._presenters.append(dec_p)
         self._register_center_page("decors", dec_v)
-        dec_v.cardClicked.connect(self.open_decor_details)         # NEW
+        dec_v.cardClicked.connect(self.open_decor_details)
 
         # AI (chat) – via factory (keeps settings out of this file)
         chat_v, chat_p = build_chat_module(PROJECT_ROOT, sys.executable)
@@ -299,8 +296,11 @@ class MainShell(QWidget):
         self._register_center_page("ai", chat_v)
 
         # User profile (real view instead of a placeholder)
-        user_v = UserInfoView(); user_p = UserInfoPresenter(UserInfoModel(), user_v); user_p.start(self.username)
-        self._presenters.append(user_p); self._register_center_page("profile", user_v)
+        user_v = UserInfoView()
+        user_p = UserInfoPresenter(UserInfoModel(), user_v)
+        user_p.start(self.username)
+        self._presenters.append(user_p)
+        self._register_center_page("profile", user_v)
 
         self._user_presenter = user_p
         self._user_view = user_v
@@ -310,10 +310,6 @@ class MainShell(QWidget):
 
         # NEW: clicking the chart icon inside "Owned" opens the decor price chart
         user_v.ownedGraphClicked.connect(self.open_decor_price_chart)
-
-        # Placeholders (kept as reference)
-        # self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
-        # self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
 
     # ----- Add-Decor opener -----
     def open_add_decor(self) -> None:
@@ -345,11 +341,9 @@ class MainShell(QWidget):
         if hasattr(view, "cancelRequested"):
             view.cancelRequested.connect(back_to_profile)
 
-        # Important fix: register the page and navigate to it
         self._presenters.append(presenter)        # prevent GC
         self._register_center_page(page_name, view)
         self.navigate(page_name)
-
 
     def _placeholder(self, text: str) -> QWidget:
         """Simple placeholder page with centered label."""
@@ -392,7 +386,6 @@ class MainShell(QWidget):
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
-
     def open_decor_details(self, decor_id: int):
         """Open (or reuse) the decor details page for the given id."""
         page_name = f"decor:{decor_id}"
@@ -404,7 +397,6 @@ class MainShell(QWidget):
         self._presenters.append(presenter)   # prevent GC
         self._register_center_page(page_name, view)
         self.navigate(page_name)
-
 
     # ----- Add-Decor opener -----
     def open_add_decor(self) -> None:
