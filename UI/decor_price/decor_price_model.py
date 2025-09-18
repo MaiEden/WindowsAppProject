@@ -1,6 +1,6 @@
 # UI/decor_price/decor_price_model.py
 from typing import List, Dict, Any, Optional
-from UI import server_access  # אותו helper שבו משתמש HallListModel שלך :contentReference[oaicite:3]{index=3}
+from UI import server_access
 
 class DecorPriceModel:
     """

@@ -10,10 +10,8 @@ View for the Chat screen (MVP).
 """
 
 from __future__ import annotations
-
 from datetime import datetime
 from typing import Optional
-
 from PySide6.QtCore import Qt, Signal, QEvent
 from PySide6.QtGui import QTextOption, QGuiApplication
 from PySide6.QtWidgets import (

@@ -1,14 +1,11 @@
 # chat_model.py
 from __future__ import annotations
-
 import json
 import subprocess
 import traceback
 from dataclasses import dataclass
 from typing import Optional
-
 from PySide6.QtCore import QObject, QThread, Signal
-
 
 def _build_inline_runner(question: str, model: str, host: str, cache_dir: str, llm_dir: str) -> str:
     """Create the inline Python code that runs in the external interpreter."""
@@ -36,7 +33,6 @@ try:
 except Exception as e:
     print(json.dumps({{"ok": False, "error": str(e) + "\\n" + traceback.format_exc()}}))
 """
-
 
 class _ExternalAskWorker(QThread):
     """Runs the inline helper in a subprocess;

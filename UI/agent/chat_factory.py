@@ -1,14 +1,10 @@
 # UI/agent/chat_factory.py
 from __future__ import annotations
-
-import sys
 from pathlib import Path
 from typing import Tuple
-
 from chat_model import ChatModel, ChatSettings
 from chat_view import ChatView
 from chat_presenter import ChatPresenter
-
 
 def build_chat_module(project_root: Path, python_exe: str) -> Tuple[ChatView, ChatPresenter]:
     """

@@ -1,8 +1,4 @@
-# ============================
-# File: main.py
-# ============================
 # Entry point – Single window. Login -> (on success) MainShell.
-# Loads global QSS; keeps presenters alive to preserve logic/signals.
 
 import sys
 from pathlib import Path
@@ -21,16 +17,12 @@ for p in [
     sys.path.append(str(p))
 
 from main_shell import AppWindow, MainShell
-
-# ---- Auth views/presenters/models ----
 from login.login_view import LoginView
 from login.login_presenter import LoginPresenter
 from login.login_model import AuthModel
-
 from signup.signup_view import SignUpView
 from signup.signup_presenter import SignUpPresenter
 from signup.signup_model import SignUpModel
-
 
 def load_global_qss(app):
     """Load app-wide styles."""
@@ -86,7 +78,6 @@ def main():
     win.showMaximized()  # open full-screen by default (maximized)
 
     sys.exit(app.exec())
-
 
 if __name__ == "__main__":
     main()
