@@ -3,7 +3,7 @@ Presenter: ties View <-> Model (MVP)
 - Wires search, hall_type, accessibility, refresh
 - Maps data rows to card view models (subset only)
 """
-from typing import List, Dict, Any
+from typing import Dict, Any
 from PySide6.QtCore import QObject
 from hall_list_model import HallListModel
 
@@ -75,7 +75,6 @@ class HallListPresenter(QObject):
             "subtitle": subtitle,
             "price": self._fmt_price(r),
             "region": r.get("Region") or "",
-            # Reuse the pill to indicate accessibility
             "accessible": bool(r.get("WheelchairAccessible")),
             "photo": r.get("PhotoUrl") or "",
         }
