@@ -1,4 +1,4 @@
-# UI/decor/decor_price_app.py
+# UI/decor/decor_price_app.py runs the graphs
 import sys
 from PySide6.QtWidgets import QApplication
 from UI.decor_price.decor_price_model import DecorPriceModel
@@ -8,12 +8,13 @@ from UI.decor_price.decor_price_presenter import DecorPricePresenter
 def main():
     app = QApplication.instance() or QApplication(sys.argv)
 
+    # View + Model + Presenter wiring
     model = DecorPriceModel()
     view = DecorPriceView()
     presenter = DecorPricePresenter(model, view)
 
-    # >>> כאן אתה מקליד ידנית את ה-ID שאתה רוצה לבדוק <<<
-    DECOR_ID = 5   # לדוגמה: 5, תחליף ל-ID אמיתי שקיים אצלך בטבלה dbo.DecorOption
+    # Here you manually type the ID you want to check.
+    DECOR_ID = 5
 
     presenter.show_for(DECOR_ID)
 

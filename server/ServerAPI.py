@@ -319,6 +319,35 @@ def list_decor_prices(
         offset=offset,
     )
 
+# ---------- Add Decor (Create) ----------
+class DecorCreate(BaseModel):
+    DecorName: str
+    Category: str
+    Theme: Optional[str] = None
+    Description: Optional[str] = None
+    Indoor: bool = True
+    RequiresElectricity: bool = False
+    PriceSmall: Optional[float] = None
+    PriceMedium: Optional[float] = None
+    PriceLarge: Optional[float] = None
+    DeliveryFee: Optional[float] = None
+    Region: Optional[str] = None
+    VendorName: Optional[str] = None
+    ContactPhone: Optional[str] = None
+    ContactEmail: Optional[str] = None
+    PhotoUrl: Optional[str] = None
+    LeadTimeDays: Optional[int] = None
+    CancellationPolicy: Optional[str] = None
+    Available: bool = True
+
+@app.post("/DB/decors/create")
+def create_decor(item: DecorCreate) -> int:
+    """
+    Creates a new decor option. Returns DecorId (int).
+    """
+    from server.database import insert_api  # local import to match your structure
+    return insert_api.add_decor_option(item.dict())
+
 # ---------- User <-> Decor link ----------
 class UserDecorLink(BaseModel):
     UserId: int

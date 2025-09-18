@@ -1,18 +1,12 @@
-# -*- coding: utf-8 -*-
 """
-Entry point to open the Sign Up screen only (MVP).
+Entry point to open the SignUp screen (MVP).
 """
-
 import sys
 from PySide6.QtWidgets import QApplication
 from PySide6.QtGui import QFont
-
-from signup_model import SignUpModel
-from signup_view import SignUpView
-from signup_presenter import SignUpPresenter
-from typing import Tuple, Dict, Any
-
-
+from UI.signup.signup_model import SignUpModel
+from UI.signup.signup_view import SignUpView
+from UI.signup.signup_presenter import SignUpPresenter
 
 def load_stylesheet(path: str) -> str:
     try:
@@ -21,7 +15,6 @@ def load_stylesheet(path: str) -> str:
     except Exception as e:
         print(f"Failed to load stylesheet: {e}")
         return ""
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
@@ -32,7 +25,7 @@ if __name__ == "__main__":
     model = SignUpModel()  # standalone demo store
     presenter = SignUpPresenter(model, view)  # noqa: F841
 
-    # Load external QSS
+    # Load QSS
     qss = load_stylesheet("../../UI/style&icons/UIstyle.qss")
     if qss:
         app.setStyleSheet(qss)
