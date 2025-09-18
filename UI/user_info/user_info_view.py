@@ -106,7 +106,7 @@ class CompactCard(QFrame):
         img = QLabel(objectName="CardImage")
         img.setFixedHeight(180)
         img.setAlignment(Qt.AlignCenter)
-        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
+        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
         load_into(img, url, placeholder=STYLE_DIR / "placeholder_card.png", size=QSize(340, 180))
 
         # Title + subtitle

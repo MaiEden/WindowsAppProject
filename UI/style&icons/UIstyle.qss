@@ -10,8 +10,8 @@ QWidget {
 QFrame#Card {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;   /* thin neutral border */
-    border-radius: 16px;         /* softer than before */
-    /* shadow comes from QGraphicsDropShadowEffect in view.py */
+    border-radius: 16px;         /* soft corners */
+    /* shadow is applied via QGraphicsDropShadowEffect in view.py */
 }
 
 /* -------- Titles -------- */
@@ -70,7 +70,7 @@ QPushButton#Primary {
 }
 QPushButton#Primary:hover {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
-        stop:0 #1D4ED8, stop:1 #2563EB); /* a touch darker */
+        stop:0 #1D4ED8, stop:1 #2563EB); /* slightly darker on hover */
 }
 QPushButton#Primary:pressed {
     background: #1E40AF; /* blue-800 */
@@ -116,7 +116,7 @@ QLabel#Hint {
     font-size: 12px;
 }
 
-/* -------- Social (if משתמש/ת בזה בעתיד) -------- */
+/* -------- Social (for future use) -------- */
 QPushButton#Social {
     background: #FFFFFF;
     border: 1px solid #E5E7EB;

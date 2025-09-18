@@ -1,19 +1,17 @@
 """
 Model: Fetches decor catalog from the server (no local fallbacks).
-Expected response: list[dict] with keys aligned to dbo.DecorOption columns.
 """
 from typing import List, Dict, Any, Optional
-from UI import server_access  # זהה ללוגין
+from UI import server_access
 from server.database.image_loader import IMAGE_LOADER
-from PySide6.QtCore import Qt   #
-
+from PySide6.QtCore import Qt
 
 class DecorListModel:
     def __init__(self) -> None:
         self._items: List[Dict[str, Any]] = []
 
     def load(self) -> None:
-        """Fetch data from server (raise on failure so the presenter can show a message if needed)."""
+        """Fetch data from server."""
         data = server_access.request("/DB/decors/list")
         if not isinstance(data, list):
             raise TypeError("Decor list endpoint must return a list of objects.")
@@ -42,8 +40,3 @@ class DecorListModel:
             return t in hay
 
         return [x for x in self._items if match(x)]
-
-    def get_pic(self, imageName: str):
-        self._image_url = f"/decor/{imageName}.jpg"
-        IMAGE_LOADER.pixmapReady.connect(self._on_pixmap_ready, type=Qt.UniqueConnection)
-        IMAGE_LOADER.fetch(self._image_url)

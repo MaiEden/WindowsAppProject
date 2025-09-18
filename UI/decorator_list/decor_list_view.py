@@ -5,27 +5,22 @@ View: Modern card grid + search/category/availability filters
 """
 from pathlib import Path
 from typing import Optional, List, Dict
-
-from PySide6.QtCore import Qt, QSize, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer
-from PySide6.QtGui import QPixmap
+from PySide6.QtCore import (Qt, QSize, Signal,
+                            QPropertyAnimation, QEasingCurve, QRect, QTimer)
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QCheckBox,
     QPushButton, QScrollArea, QFrame, QGridLayout, QSizePolicy, QSpacerItem,
     QMessageBox, QGraphicsDropShadowEffect
 )
-
-# שימוש בפונקציה החיצונית לטעינת תמונות (מינימום שינוי ב-View)
 from server.database.image_loader import load_into
 
 BASE_DIR = Path(__file__).resolve().parent
-
 
 def _apply_shadow(widget, radius=18, x_offset=0, y_offset=6):
     eff = QGraphicsDropShadowEffect(widget)
     eff.setBlurRadius(radius)
     eff.setOffset(x_offset, y_offset)
     widget.setGraphicsEffect(eff)
-
 
 class DecorCard(QFrame):
     clicked = Signal(int)
@@ -59,8 +54,8 @@ class DecorCard(QFrame):
         img.setAlignment(Qt.AlignCenter)
         self._img = img
 
-        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        load_into(img, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420, 160))
+        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
+        load_into(img, url, size=QSize(420, 160))
 
         title = QLabel(self.vm.get("title", ""), objectName="CardTitle")
         subtitle = QLabel(self.vm.get("subtitle", ""), objectName="CardSubtitle")
@@ -114,21 +109,18 @@ class DecorListView(QWidget):
     categoryChanged = Signal(str)
     availableChanged = Signal(bool)
     refreshRequested = Signal()
-
-    # NEW: outward signal for opening details
     cardClicked = Signal(int)
 
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Decorations Catalog")
-        self.resize(1120, 720)
         self._cards_cache: List[Dict] = []
         self._build()
         self._load_qss()
 
     def showEvent(self, e):
         super().showEvent(e)
-        QTimer.singleShot(0, self._rebuild_grid)  # run after layout is ready
+        QTimer.singleShot(0, self._rebuild_grid)
 
     # ---------- UI ----------
     def _build(self):
@@ -230,7 +222,6 @@ class DecorListView(QWidget):
         r = c = 0
         for vm in self._cards_cache:
             card = DecorCard(vm)
-            # emit the outward signal with the id (instead of print)
             card.clicked.connect(lambda _id, v=vm: self.cardClicked.emit(int(v.get("id") or -1)))
             self.grid.addWidget(card, r, c)
             c += 1

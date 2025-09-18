@@ -1,16 +1,12 @@
-# chat_presenter.py
 """
 Presenter for the Chat screen (MVP).
 - Wires up the view and the model.
 - Forwards user actions (send) to the model.
 - Applies model results back to the view (answer or error).
 """
-
 from __future__ import annotations
-
 from chat_model import ChatModel
 from chat_view import ChatView
-
 
 class ChatPresenter:
     def __init__(self, model: ChatModel, view: ChatView):

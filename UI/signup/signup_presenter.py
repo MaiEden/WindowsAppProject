@@ -1,20 +1,15 @@
 """
 Presenter for Sign Up screen
-— גרסה תואמת Python 3.8: בלי |
 """
-
 from typing import Optional
-
 from PySide6.QtCore import QObject, Signal, Slot, QThread
-
 from UI.signup.signup_model import SignUpModel
 from UI.signup.signup_view import SignUpView
 from UI.ui_helpers import start_button_loading, stop_button_loading
 
-
 class _SignUpWorker(QObject):
-    """Worker שרץ ב־QThread ומבצע את פעולת ההרשמה."""
-    finished = Signal(bool, str)  # ok, msg
+    """Worker that runs inside a QThread and performs the registration call."""
+    finished = Signal(bool, str)  # ok, message
 
     def __init__(self, model: SignUpModel, phone: str, username: str, pwd_hash: str, region: str):
         super().__init__()
@@ -26,6 +21,7 @@ class _SignUpWorker(QObject):
 
     @Slot()
     def run(self):
+        """Execute the blocking sign-up logic off the GUI thread and emit the result."""
         try:
             ok, msg = self._model.register(self._phone, self._username, self._pwd_hash, self._region)
         except Exception as e:
@@ -46,27 +42,29 @@ class SignUpPresenter(QObject):
         self._connect_signals()
 
     def _connect_signals(self):
+        """Connect view events to presenter handlers."""
         self.view.submit_clicked.connect(self.on_submit)
 
     @Slot()
     def on_submit(self):
+        """Collect form data, show loading, start worker in a background thread."""
         phone = self.view.get_phone()
         username = self.view.get_username()
         pwd_hash = self.view.get_password_hash()
         region = self.view.get_region()
 
-        # כפתור במצב טעינה (ספינר בתוך הכפתור + disable)
+        # Put the submit button in a loading state (spinner inside the button + disable)
         start_button_loading(self.view.submit_btn, "creating an account...")
 
-        # יצירת thread ו־worker
+        # Create thread and worker
         self._thread = QThread(self)
         self._worker = _SignUpWorker(self.model, phone, username, pwd_hash, region)
         self._worker.moveToThread(self._thread)
 
-        # כש־thread מתחיל → להריץ את העבודה
+        # When the thread starts → run the worker job
         self._thread.started.connect(self._worker.run)
 
-        # כשנגמר → לטפל בתוצאה ולנקות משאבים
+        # When finished → handle result and clean up resources
         def _on_finished(ok: bool, msg: str):
             stop_button_loading(self.view.submit_btn)
             print("Sign up OK" if ok else "Sign up failed")
@@ -74,7 +72,7 @@ class SignUpPresenter(QObject):
             if ok:
                 self.auth_ok.emit(username)
 
-            # ניקוי מסודר
+            # Tidy cleanup
             if self._thread is not None:
                 self._thread.quit()
                 self._thread.wait()
@@ -86,5 +84,5 @@ class SignUpPresenter(QObject):
 
         self._worker.finished.connect(_on_finished)
 
-        # הפעלה
+        # Start the thread
         self._thread.start()

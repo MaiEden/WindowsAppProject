@@ -7,7 +7,6 @@ from UI import server_access
 from server.database.image_loader import IMAGE_LOADER
 from PySide6.QtCore import Qt
 
-
 class HallListModel:
     def __init__(self) -> None:
         self._items: List[Dict[str, Any]] = []
@@ -52,9 +51,3 @@ class HallListModel:
             return t in hay
 
         return [x for x in self._items if match(x)]
-
-    # Optional: parity with decor API
-    def get_pic(self, imageName: str):
-        self._image_url = f"/halls/{imageName}.jpg"
-        IMAGE_LOADER.pixmapReady.connect(self._on_pixmap_ready, type=Qt.UniqueConnection)
-        IMAGE_LOADER.fetch(self._image_url)

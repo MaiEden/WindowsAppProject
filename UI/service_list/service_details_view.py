@@ -1,16 +1,9 @@
-# ============================
-# File: service_list/service_details_view.py
-# ============================
-from pathlib import Path
 from typing import Dict, Any
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QScrollArea, QFrame,
-    QGridLayout, QMessageBox
-)
+    QGridLayout, QMessageBox)
 from server.database.image_loader import load_into
-
-BASE_DIR = Path(__file__).resolve().parent
 
 def _title(t):  lbl=QLabel(t); lbl.setStyleSheet("font-size:22px;font-weight:700;"); return lbl
 def _sub(t):    lbl=QLabel(t); lbl.setStyleSheet("color:#666;"); return lbl
@@ -23,10 +16,6 @@ def _kv(k,v):
     return w
 
 class ServiceDetailsView(QWidget):
-    """
-    Nice, modern details page for ServiceOption.
-    Shows image, title, subtitle, tags (availability, logistics), pricing, meta.
-    """
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Service – Details")
@@ -34,11 +23,15 @@ class ServiceDetailsView(QWidget):
 
     # ---------- UI skeleton ----------
     def _build(self):
-        root = QVBoxLayout(self); root.setContentsMargins(10,10,10,10); root.setSpacing(10)
+        root = QVBoxLayout(self)
+        root.setContentsMargins(10,10,10,10)
+        root.setSpacing(10)
 
         # scroll container
-        scroll = QScrollArea(); scroll.setWidgetResizable(True)
-        wrap = QFrame(); scroll.setWidget(wrap)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        wrap = QFrame()
+        scroll.setWidget(wrap)
         root.addWidget(scroll, 1)
 
         lay = QVBoxLayout(wrap); lay.setSpacing(12)
@@ -79,7 +72,7 @@ class ServiceDetailsView(QWidget):
         meta = QFrame(objectName="Card"); self.meta_lay = QVBoxLayout(meta); self.meta_lay.setSpacing(6)
         lay.addWidget(meta)
 
-        # styling to match other cards
+        # styling cards
         self.setStyleSheet("""
             QFrame#Card{
                 background:#fff;
@@ -90,14 +83,17 @@ class ServiceDetailsView(QWidget):
         """)
 
     # ---------- Presenter API ----------
-    def set_busy(self, busy: bool): self.setDisabled(busy)
-    def show_error(self, msg: str): QMessageBox.critical(self, "Error", msg)
+    def set_busy(self, busy: bool):
+        self.setDisabled(busy)
 
-    # ---------- Populate with data from API (ServiceOption row) ----------
+    def show_error(self, msg: str):
+        QMessageBox.critical(self, "Error", msg)
+
+    # ---------- Populate with data from API----------
     def populate(self, r: Dict[str, Any]):
         # Image
-        url = r.get("PhotoUrl") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        load_into(self.photo, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420,260))
+        url = r.get("PhotoUrl") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
+        load_into(self.photo, url, size=QSize(420,260))
 
         # Titles
         name = r.get("ServiceName") or ""

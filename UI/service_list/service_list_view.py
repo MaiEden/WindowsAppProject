@@ -1,35 +1,31 @@
 """
 View: Modern card grid + search/category/availability filters
-- Reuses QSS 'list_style.qss' for consistent styling
-- Card shows subset: image, title, subtitle, price, region, availability
 """
-from pathlib import Path
 from typing import Optional, List, Dict
-
-from PySide6.QtCore import Qt, QSize, Signal, QPropertyAnimation, QEasingCurve, QRect, QTimer
+from PySide6.QtCore import (Qt, QSize, Signal,
+                            QPropertyAnimation, QEasingCurve, QRect, QTimer)
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QComboBox, QCheckBox,
     QPushButton, QScrollArea, QFrame, QGridLayout, QSizePolicy, QSpacerItem,
-    QMessageBox, QGraphicsDropShadowEffect
-)
-
-# Image loading identical to the Decor list
+    QMessageBox, QGraphicsDropShadowEffect)
 from server.database.image_loader import load_into
 
-BASE_DIR = Path(__file__).resolve().parent
-
-
 def _apply_shadow(widget, radius=18, x_offset=0, y_offset=6):
+    """Apply a soft drop-shadow to visually elevate the card from the background."""
     eff = QGraphicsDropShadowEffect(widget)
     eff.setBlurRadius(radius)
     eff.setOffset(x_offset, y_offset)
     widget.setGraphicsEffect(eff)
 
-
 class ServiceCard(QFrame):
+    """A single service card"""
     clicked = Signal(int)
 
     def __init__(self, vm: Dict):
+        """
+        vm (view-model dict) is expected to include:
+          id, photo, title, subtitle, region, available
+        """
         super().__init__(objectName="Card")
         self.vm = vm
         self.setCursor(Qt.PointingHandCursor)
@@ -38,7 +34,7 @@ class ServiceCard(QFrame):
         self.setSizePolicy(QSizePolicy.Fixed, QSizePolicy.Fixed)
         _apply_shadow(self, radius=18, y_offset=6)
 
-        # Hover animation
+        # Hover animation (gentle grow/shrink by a few pixels)
         self._base_geom: Optional[QRect] = None
         self._anim = QPropertyAnimation(self, b"geometry", self)
         self._anim.setDuration(140)
@@ -48,22 +44,26 @@ class ServiceCard(QFrame):
         self._build()
 
     def _build(self):
+        """Assemble the card layout and start the async image load."""
         lay = QVBoxLayout(self)
         lay.setContentsMargins(12, 10, 12, 12)
         lay.setSpacing(8)
 
-        # Image
+        # Image area
         img = QLabel(objectName="CardImage")
         img.setFixedHeight(160)
         img.setAlignment(Qt.AlignCenter)
         self._img = img
 
-        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/download.jpg"
-        load_into(img, url, placeholder=BASE_DIR / "placeholder_card.png", size=QSize(420, 160))
+        # Use provided image or a CDN placeholder
+        url = self.vm.get("photo") or "https://cdn.jsdelivr.net/gh/MaiEden/pic-DB-events-app@main/dfault.png"
+        load_into(img, url, size=QSize(420, 160))
 
+        # Text fields
         title = QLabel(self.vm.get("title", ""), objectName="CardTitle")
         subtitle = QLabel(self.vm.get("subtitle", ""), objectName="CardSubtitle")
 
+        # Meta row: region + availability pill (styled via QSS using 'ok' property)
         meta = QHBoxLayout()
         region = QLabel(self.vm.get("region") or "", objectName="Region")
         pill = QLabel("Available" if self.vm.get("available") else "Unavailable", objectName="Pill")
@@ -71,6 +71,7 @@ class ServiceCard(QFrame):
         meta.addWidget(region)
         meta.addWidget(pill)
 
+        # Compose
         lay.addWidget(img)
         lay.addSpacing(6)
         lay.addWidget(title)
@@ -79,6 +80,7 @@ class ServiceCard(QFrame):
 
     # --- Hover grow/shrink ---
     def enterEvent(self, e):
+        """Animate a slight grow on hover based on the initial geometry."""
         if self._base_geom is None:
             self._base_geom = self.geometry()
         g = self._base_geom
@@ -91,6 +93,7 @@ class ServiceCard(QFrame):
         super().enterEvent(e)
 
     def leaveEvent(self, e):
+        """Return to the base geometry when the cursor leaves the card."""
         if self._base_geom is not None:
             self._anim.stop()
             self._anim.setStartValue(self.geometry())
@@ -99,12 +102,17 @@ class ServiceCard(QFrame):
         super().leaveEvent(e)
 
     def mouseReleaseEvent(self, e):
+        """Emit the card id on left-button release (click)."""
         if e.button() == Qt.LeftButton:
             self.clicked.emit(int(self.vm.get("id") or -1))
         super().mouseReleaseEvent(e)
 
 
 class ServiceListView(QWidget):
+    """
+    Main list view for Services.
+    """
+    # View -> Presenter signals
     searchChanged = Signal(str)
     categoryChanged = Signal(str)
     availableChanged = Signal(bool)
@@ -124,10 +132,12 @@ class ServiceListView(QWidget):
         QTimer.singleShot(0, self._rebuild_grid)
 
     def _build(self):
+        """Construct toolbar (search/filters), scroll area, grid, and empty-state label."""
         root = QVBoxLayout(self)
         root.setContentsMargins(12, 12, 12, 12)
         root.setSpacing(10)
 
+        # --- Toolbar ----------------------------------------------------------
         bar = QHBoxLayout()
         self.search = QLineEdit(placeholderText="Search services by name, description or subcategory…")
         self.search.textChanged.connect(lambda s: self.searchChanged.emit(s))
@@ -148,6 +158,7 @@ class ServiceListView(QWidget):
         bar.addWidget(self.refresh_btn, 0)
         root.addLayout(bar)
 
+        # --- Scrollable responsive grid --------------------------------------
         self.scroll = QScrollArea()
         self.scroll.setWidgetResizable(True)
         self.scroll.setAlignment(Qt.AlignLeft | Qt.AlignTop)
@@ -159,62 +170,83 @@ class ServiceListView(QWidget):
         self.scroll.setWidget(wrap)
         root.addWidget(self.scroll)
 
+        # Empty-state label (shown when there are no cards)
         self.empty = QLabel("No results", alignment=Qt.AlignCenter)
         self.empty.setVisible(False)
         root.addWidget(self.empty)
 
     def _load_qss(self):
+        """Load and apply external QSS (keeps most styling out of the code)."""
         from pathlib import Path
         qss_path = Path(__file__).resolve().parent.parent / "style&icons" / "list_style.qss"
         if qss_path.exists():
             self.setStyleSheet(qss_path.read_text(encoding="utf-8"))
 
+    # --- Presenter API --------------------------------------------------------
     def set_busy(self, busy: bool):
+        """Enable/disable the whole view (useful while fetching data)."""
         self.setDisabled(busy)
 
     def show_error(self, msg: str):
+        """Show a blocking error dialog."""
         QMessageBox.critical(self, "Error", msg)
 
     def populate_categories(self, cats: List[str]):
+        """Fill the category combo without emitting change events during the update."""
         self.category.blockSignals(True)
         self.category.clear()
         self.category.addItems(cats)
         self.category.blockSignals(False)
 
     def get_search_text(self) -> str:
+        """Return the current search text."""
         return self.search.text()
 
     def get_selected_category(self) -> str:
+        """Return the selected category."""
         return self.category.currentText()
 
     def get_available_only(self) -> bool:
+        """Return True when 'Available only' is checked."""
         return self.available.isChecked()
 
     def show_cards(self, cards: List[Dict]):
+        """Receive cards from the presenter and rebuild the grid."""
         self._cards_cache = cards
         self._rebuild_grid()
 
     def resizeEvent(self, e):
+        """Recompute layout on resize to keep the grid responsive."""
         super().resizeEvent(e)
         if self._cards_cache:
             self._rebuild_grid()
 
     def _rebuild_grid(self):
+        """
+        Populate the grid with ServiceCard widgets.
+
+        The number of columns is derived from the viewport width to achieve a
+        responsive layout. We also clear previous widgets safely to avoid leaks.
+        """
+        # Clear existing items/widgets
         while self.grid.count():
             it = self.grid.takeAt(0)
             w = it.widget()
             if w:
                 w.setParent(None)
 
+        # Handle empty state
         if not self._cards_cache:
             self.empty.setVisible(True)
             return
         self.empty.setVisible(False)
 
+        # Determine column count from viewport width
         viewport_w = self.scroll.viewport().contentsRect().width()
-        card_w = 340
+        card_w = 340  # nominal card width for column calculation
         cols = max(1, viewport_w // card_w)
 
+        # Add cards row-by-row
         r = c = 0
         for vm in self._cards_cache:
             card = ServiceCard(vm)
@@ -225,5 +257,6 @@ class ServiceListView(QWidget):
                 r += 1
                 c = 0
 
+        # Add a vertical spacer to keep cards pinned to the top
         self.grid.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding), r + 1, 0, 1, cols)
         self.grid.setRowStretch(r + 1, 1)
