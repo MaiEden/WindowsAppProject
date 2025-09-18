@@ -1,17 +1,21 @@
-# geocoding_client.py בתוך external_services
-
+# geocoding_client.py
+# Thin client for reverse geocoding via Nominatim (OpenStreetMap).
+# Provides both async and sync APIs with basic lat/lon validation and
+# normalized Address output.
 from __future__ import annotations
 import asyncio
 import json
 from typing import Optional, Dict, Any
 from dataclasses import dataclass, asdict
-
-# כאן שמים נתיב יחסי כמו ב-weather_client
 from server.gateway.AsyncGateway import AsyncGateway
 from server.gateway.gateway import Gateway
 
 @dataclass
 class Address:
+    """
+        Normalized address envelope returned from Nominatim
+        use .as_json() to dict.
+    """
     lat: float
     lon: float
     formatted_address: Optional[str]
@@ -24,10 +28,15 @@ class Address:
     source: str = "nominatim"
 
     def as_json(self) -> Dict[str, Any]:
+        """Return the dataclass as a plain dict (for logging/serialization)."""
         return asdict(self)
 
 
 def _validate_lat_lon(lat: float, lon: float) -> None:
+    """
+        Guard: lat ∈ [-90, 90], lon ∈ [-180, 180]
+        raise ValueError on invalid input.
+    """
     if not (-90.0 <= lat <= 90.0):
         raise ValueError("lat out of range (-90..90).")
     if not (-180.0 <= lon <= 180.0):
@@ -38,6 +47,10 @@ _async_gateway = AsyncGateway(timeout=12.0)
 
 
 async def _reverse_geocode_async(lat: float, lon: float) -> Dict[str, Any]:
+    """
+        Async reverse-geocode against Nominatim
+        returns Address as dict with smart fallbacks.
+    """
     _validate_lat_lon(lat, lon)
 
     base = "https://nominatim.openstreetmap.org/reverse"
@@ -72,6 +85,10 @@ _sync_gateway = Gateway(timeout=10)
 
 
 def reverse_geocode(lat: float, lon: float) -> Dict[str, Any]:
+    """
+        Sync wrapper around the async call
+        works with or without a running event loop.
+    """
     try:
         return asyncio.run(_reverse_geocode_async(lat, lon))
     except RuntimeError:
@@ -80,7 +97,10 @@ def reverse_geocode(lat: float, lon: float) -> Dict[str, Any]:
 
 
 def reverse_geocode_sync_via_requests(lat: float, lon: float) -> Dict[str, Any]:
-    import urllib.parse as _u
+    """
+        Pure sync variant using Gateway.get (text) + json.loads
+        returns Address dict.
+    """
     _validate_lat_lon(lat, lon)
     base = "https://nominatim.openstreetmap.org/reverse"
     params = {
@@ -113,12 +133,11 @@ def reverse_geocode_sync_via_requests(lat: float, lon: float) -> Dict[str, Any]:
 
 
 async def get_address_async(lat: float, lon: float) -> Dict[str, Any]:
+    """Public async alias for reverse geocoding (Address dict)."""
     return await _reverse_geocode_async(lat, lon)
 
 
 def get_address(lat: float, lon: float) -> Dict[str, Any]:
+    """Public sync alias for reverse geocoding (Address dict)."""
     return reverse_geocode(lat, lon)
 
-
-if __name__ == "__main__":
-    print(get_address(32.0853, 34.7818))  # Tel Aviv

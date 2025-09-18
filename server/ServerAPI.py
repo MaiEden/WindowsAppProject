@@ -7,7 +7,7 @@ from pydantic import BaseModel
 
 import server.database.read_api as read_api
 from server.database import insert_api
-from server.external_services.cordinats.geocoding_client import get_address
+from server.external_services.coordinates.geocoding_client import get_address
 
 app = FastAPI(title="Events Backend (Demo)")
 
@@ -166,7 +166,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import server.database.read_api as read_api
 from server.database import insert_api
-from server.external_services.cordinats.geocoding_client import get_address
+from server.external_services.coordinates.geocoding_client import get_address
 
 app = FastAPI(title="Events Backend (Demo)")
 
