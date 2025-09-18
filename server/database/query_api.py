@@ -1,5 +1,5 @@
 """
-read_api.py - API to fetch data. (queries)
+query_api.py - API to fetch data. (queries)
 
 This module provides:
 -------------------------
