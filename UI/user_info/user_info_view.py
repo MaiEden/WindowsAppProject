@@ -347,7 +347,8 @@ class UserInfoView(QWidget):
 
         # העברת הסיגנל של הגרף החוצה
         self.sec_owned.cardGraphRequested.connect(self.ownedGraphClicked)
-        self.sec_owned.addNewRequested.connect(self.addDecorClicked)
+        self.sec_owned.addNewRequested.connect(self.addDecorClicked.emit)
+
 
         lay.addItem(QSpacerItem(0, 0, QSizePolicy.Minimum, QSizePolicy.Expanding))
 

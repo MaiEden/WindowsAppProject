@@ -20,6 +20,7 @@ for p in [
     APP_BASE / "style&icons",
     APP_BASE / "agent",
     APP_BASE / "user_info",
+    APP_BASE / "add_decor",   # <- ensure add_decor is on path if needed
 ]:
     sys.path.append(str(p))
 
@@ -62,6 +63,12 @@ from user_info.user_info_presenter import UserInfoPresenter
 from UI.decor_price.decor_price_view import DecorPriceView
 from UI.decor_price.decor_price_model import DecorPriceModel
 from UI.decor_price.decor_price_presenter import DecorPricePresenter
+
+# --- Add Decor screen (imports) ---
+from UI.add_decor.add_decor_view import AddDecorView
+from UI.add_decor.add_decor_model import AddDecorModel
+from UI.add_decor.add_decor_presenter import AddDecorPresenter
+
 
 # ---------- Helpers ----------
 def circle_icon_button(char: str, tooltip: str) -> QToolButton:
@@ -138,6 +145,9 @@ class MainShell(QWidget):
 
         # prevent GC of presenters
         self._presenters: list[object] = []
+
+        self._user_presenter = None  # type: Optional[UserInfoPresenter]
+        self._user_view = None       # type: Optional[UserInfoView]
 
         self._build_ui()
         self._wire()
@@ -281,11 +291,51 @@ class MainShell(QWidget):
         user_v = UserInfoView(); user_p = UserInfoPresenter(UserInfoModel(), user_v); user_p.start(self.username)
         self._presenters.append(user_p); self._register_center_page("profile", user_v)
 
+        self._user_presenter = user_p
+        self._user_view = user_v
+
+        # '+' in Owned items opens the Add-Decor screen
+        user_v.addDecorClicked.connect(self.open_add_decor)
+
         # ← חדש: קליק על אייקון הגרף מתוך Owned
         user_v.ownedGraphClicked.connect(self.open_decor_price_chart)
         # Placeholders
         #self._register_center_page("profile", self._placeholder("Personal Info – coming soon"))
         # self._register_center_page("ai", self._placeholder("AI Help – coming soon"))
+
+    # ----- Add-Decor opener -----
+    def open_add_decor(self) -> None:
+        page_name = "add_decor"
+        if page_name in self._center_pages:
+            view = self._center_pages[page_name]
+            if hasattr(view, "reset_form"):
+                view.reset_form()
+            self.navigate(page_name)
+            return
+
+        view = AddDecorView()
+        model = AddDecorModel()
+
+        def back_to_profile() -> None:
+            self.navigate("profile")
+            if self._user_presenter is not None:
+                self._user_presenter.start(self.username)
+
+        presenter = AddDecorPresenter(
+            model, view,
+            current_username=self.username,
+            on_success=back_to_profile
+        )
+        presenter.start()
+
+        if hasattr(view, "cancelRequested"):
+            view.cancelRequested.connect(back_to_profile)
+
+        # ה־FIX החשוב: לרשום את העמוד ולנווט אליו
+        self._presenters.append(presenter)        # למנוע GC
+        self._register_center_page(page_name, view)
+        self.navigate(page_name)
+
 
     def _placeholder(self, text: str) -> QWidget:
         w = QWidget()
@@ -324,6 +374,7 @@ class MainShell(QWidget):
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
+
     def open_decor_details(self, decor_id: int):
         page_name = f"decor:{decor_id}"
         if page_name in self._center_pages:
@@ -335,7 +386,43 @@ class MainShell(QWidget):
         self._register_center_page(page_name, view)
         self.navigate(page_name)
 
-    # ----- Navigation helpers -----
+
+    # ----- Add-Decor opener -----
+    def open_add_decor(self) -> None:
+        page_name = "add_decor"
+        if page_name in self._center_pages:
+            view = self._center_pages[page_name]
+            if hasattr(view, "reset_form"):
+                view.reset_form()
+            self.navigate(page_name)
+            return
+
+        view = AddDecorView()
+        model = AddDecorModel()
+
+        def back_to_profile() -> None:
+            # navigate back and refresh the profile data
+            self.navigate("profile")
+            if self._user_presenter is not None:
+                self._user_presenter.start(self.username)
+
+        presenter = AddDecorPresenter(
+            model, view,
+            current_username=self.username,
+            on_success=back_to_profile
+        )
+        presenter.start()
+
+        # optional: cancel goes back without creating
+        if hasattr(view, "cancelRequested"):
+            view.cancelRequested.connect(back_to_profile)
+
+        self._presenters.append(presenter)
+        self._register_center_page(page_name, view)    # לרשום ל־stack
+        self.navigate(page_name)
+
+
+# ----- Navigation helpers -----
     def navigate(self, name: str):
         if name not in self._center_pages:
             return
